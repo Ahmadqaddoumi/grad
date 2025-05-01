@@ -35,6 +35,8 @@ dependencies:
   curved_navigation_bar: ^1.0.3
   arabic_font: ^0.0.9
   intl: ^0.19.0
+  font_awesome_flutter: ^10.8.0
+  sign_in_button: ^3.2.0
   
 
   # The following adds the Cupertino Icons font to your application.
