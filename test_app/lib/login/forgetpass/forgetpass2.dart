@@ -1,167 +1,201 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:test_app/login/forgetpass/newpass.dart';
-import 'package:test_app/login/forgetpass/otp.dart';
-import 'package:test_app/login/login.dart';
 
-class EmailCheck extends StatefulWidget {
-  const EmailCheck({super.key});
+class OTPVerificationPage extends StatefulWidget {
+  const OTPVerificationPage({super.key});
 
   @override
-  State<EmailCheck> createState() => _EmailCheckState();
+  State<OTPVerificationPage> createState() => _OTPVerificationPageState();
 }
 
-class _EmailCheckState extends State<EmailCheck> {
-  late FocusNode focus1;
-  late FocusNode focus2;
-  late FocusNode focus3;
-  late FocusNode focus4;
+class _OTPVerificationPageState extends State<OTPVerificationPage> {
+  final List<TextEditingController> controllers = List.generate(
+    4,
+    (_) => TextEditingController(),
+  );
+  final List<FocusNode> focusNodes = List.generate(4, (_) => FocusNode());
+
+  Timer? timer;
+  int start = 30;
 
   @override
   void initState() {
     super.initState();
-    focus1 = FocusNode();
-    focus2 = FocusNode();
-    focus3 = FocusNode();
-    focus4 = FocusNode();
+    startTimer();
+  }
+
+  void startTimer() {
+    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (start == 0) {
+        timer.cancel();
+      } else {
+        setState(() {
+          start--;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
-    focus1.dispose();
-    focus2.dispose();
-    focus3.dispose();
-    focus4.dispose();
+    for (var controller in controllers) {
+      controller.dispose();
+    }
+    for (var node in focusNodes) {
+      node.dispose();
+    }
+    timer?.cancel();
     super.dispose();
+  }
+
+  bool isAllFilled() {
+    return controllers.every((c) => c.text.isNotEmpty);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.email, size: 130, color: Color(0xff68316d)),
-                  Text(
-                    'تحقق من بريدك الإلكتروني',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xff68316d),
-                      fontSize: 30,
-                      fontWeight: FontWeight.w900,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        body: Column(
+          children: [
+            const Expanded(
+              flex: 2,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.email, size: 120, color: Color(0xff68316d)),
+                    SizedBox(height: 20),
+                    Text(
+                      'تحقق من بريدك الإلكتروني',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xff68316d),
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  SizedBox(height: 2),
-                  Text(
-                    ''' لقد ارسلنا رمزاً الى بريدك الإلكتروني, استخدم هذا الرمز
-                              لتأكيد حسابك''',
-                    style: TextStyle(
-                      color: Color(0xff68316d),
-                      fontWeight: FontWeight.w800,
-                      fontSize: 16,
+                    SizedBox(height: 15),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        'لقد أرسلنا رمز تحقق إلى بريدك الإلكتروني، الرجاء إدخال الرمز أدناه.',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xff68316d),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              decoration: const BoxDecoration(
-                color: Color(0xff68316d),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(40),
-                  topRight: Radius.circular(40),
+                  ],
                 ),
               ),
-              padding: const EdgeInsets.all(40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Form(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        OTP(focusNode: focus1),
-                        OTP(focusNode: focus2, previousFocusNode: focus1),
-                        OTP(focusNode: focus3, previousFocusNode: focus2),
-                        OTP(focusNode: focus4, previousFocusNode: focus3),
-                      ],
-                    ),
+            ),
+            Expanded(
+              flex: 3,
+              child: Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: Color(0xff68316d),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(40),
+                    topRight: Radius.circular(40),
                   ),
-                  const SizedBox(height: 35),
-                  const Text(
-                    "لم تحصل على الرمز؟",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                  const SizedBox(height: 25),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder:
-                                    (ctx) => Newpassword(
-                                      isObsecure: true,
-                                      onItemChange: () {
-                                        setState(() {});
-                                      },
-                                    ),
-                              ),
-                            );
-                          },
-                          style: const ButtonStyle(
-                            backgroundColor: WidgetStatePropertyAll(
-                              Color(0xffce9dd2),
-                            ),
-                            padding: WidgetStatePropertyAll(EdgeInsets.all(15)),
-                          ),
-                          child: const Text(
-                            "إعادة تعيين كلمة المرور",
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                ),
+                padding: const EdgeInsets.all(30),
+                child: Column(
+                  children: [
+                    Form(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: List.generate(
+                          4,
+                          (index) => buildOTPField(index),
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 55),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (ctx) => const LogInPage()),
-                      );
-                    },
-                    child: const Text(
-                      "العودة إالي تسجيل الدخول",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
+                    ),
+                    const SizedBox(height: 30),
+                    Text(
+                      start > 0
+                          ? 'يمكنك إعادة الإرسال خلال $start ثانية'
+                          : 'لم تستلم الرمز؟ أعد الإرسال',
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                    const SizedBox(height: 30),
+                    ElevatedButton(
+                      onPressed:
+                          isAllFilled()
+                              ? () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => Newpassword(
+                                          isObsecure: true,
+                                          onItemChange: () {},
+                                        ),
+                                  ),
+                                );
+                              }
+                              : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xffce9dd2),
+                        minimumSize: const Size(double.infinity, 55),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
+                      child: const Text(
+                        "تأكيد الرمز",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildOTPField(int index) {
+    return SizedBox(
+      width: 60,
+      child: TextField(
+        controller: controllers[index],
+        focusNode: focusNodes[index],
+        keyboardType: TextInputType.number,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: Colors.white, fontSize: 24),
+        maxLength: 1,
+        decoration: InputDecoration(
+          counterText: "",
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.white, width: 2),
           ),
-        ],
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.white, width: 2),
+          ),
+        ),
+        onChanged: (value) {
+          if (value.isNotEmpty && index < 3) {
+            FocusScope.of(context).requestFocus(focusNodes[index + 1]);
+          } else if (value.isEmpty && index > 0) {
+            FocusScope.of(context).requestFocus(focusNodes[index - 1]);
+          }
+          setState(() {});
+        },
       ),
     );
   }

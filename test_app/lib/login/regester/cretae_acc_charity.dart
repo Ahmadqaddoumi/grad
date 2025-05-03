@@ -2,359 +2,274 @@ import 'package:flutter/material.dart';
 import 'package:test_app/login/login.dart';
 
 // ignore: must_be_immutable
-class RegisterCharity extends StatefulWidget {
+class CreateAccCharity extends StatefulWidget {
   final VoidCallback onItemChange;
   bool isObsecure;
-  RegisterCharity({
+
+  CreateAccCharity({
     super.key,
     required this.onItemChange,
     required this.isObsecure,
   });
 
   @override
-  State<RegisterCharity> createState() => _CreateNewAccountState();
+  State<CreateAccCharity> createState() => _CreateAccCharityState();
 }
 
-class _CreateNewAccountState extends State<RegisterCharity> {
-  TextEditingController searchTextEditingcontroller = TextEditingController();
+class _CreateAccCharityState extends State<CreateAccCharity> {
+  // Controllers للحقل
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+  final TextEditingController serialNumberController = TextEditingController();
+
   bool isTyped = false;
   bool booleanValue = false;
+
   @override
   void initState() {
     super.initState();
-    searchTextEditingcontroller.addListener(() {
+    serialNumberController.addListener(() {
       setState(() {
-        isTyped = searchTextEditingcontroller.text.isNotEmpty;
+        isTyped = serialNumberController.text.isNotEmpty;
       });
     });
   }
 
   @override
   void dispose() {
-    searchTextEditingcontroller.dispose();
+    usernameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    serialNumberController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            Stack(
-              alignment: AlignmentDirectional.topEnd,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: const Color(0xff68316d),
+          elevation: 0,
+          title: const Text(
+            "إنشاء حساب منظمة",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
               children: [
                 Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.width / 1.7,
+                  width: double.infinity,
+                  height: MediaQuery.of(context).size.width / 1.8,
                   decoration: const BoxDecoration(
-                    // color:Colors.green[900],
                     color: Color(0xff68316d),
                     borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(60),
                       bottomRight: Radius.circular(60),
                     ),
                   ),
-                ),
-                const Row(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(top: 18.0, left: 18),
-                      child: Icon(
-                        Icons.more_horiz,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-                    Expanded(child: SizedBox(height: 2)),
-                    Padding(
-                      padding: EdgeInsets.only(top: 18.0, right: 29),
-                      child: Icon(Icons.close, color: Colors.white, size: 30),
-                    ),
-                  ],
-                ),
-                const Padding(
-                  padding: EdgeInsets.only(right: 40.0, top: 50),
-                  child: SizedBox(
-                    width: 130,
+                  child: const Center(
                     child: Text(
                       "دعنا ننشئ حسابك",
-                      textDirection: TextDirection.rtl,
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
                         color: Colors.white,
-                        fontSize: 40,
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 25.0,
-                left: 40,
-                right: 40,
-                bottom: 20,
-              ),
-              child: Column(
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: TextField(
-                      textDirection: TextDirection.rtl,
-                      decoration: InputDecoration(
-                        hintText: "اسم المستخدم",
-                        suffixIcon: Icon(Icons.person),
-                        hintTextDirection: TextDirection.rtl,
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(18.0)),
-                          borderSide: BorderSide(
-                            width: 2.5,
-                            color: Color(0xff68316d),
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(18.0)),
-                          borderSide: BorderSide(
-                            width: 2.5,
-                            color: Color(0xff68316d),
-                          ),
-                        ),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 10,
-                        ),
+                const SizedBox(height: 30),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      customTextField(
+                        controller: usernameController,
+                        hint: "اسم المستخدم",
+                        icon: Icons.person,
                       ),
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: TextField(
-                      textDirection: TextDirection.rtl,
-                      decoration: InputDecoration(
-                        hintText: "البريد الإلكتروني",
-                        suffixIcon: Icon(Icons.email),
-                        hintTextDirection: TextDirection.rtl,
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(18.0)),
-                          borderSide: BorderSide(
-                            width: 2.5,
-                            color: Color(0xff68316d),
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(18.0)),
-                          borderSide: BorderSide(
-                            width: 2.5,
-                            color: Color(0xff68316d),
-                          ),
-                        ),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 10,
-                        ),
+                      customTextField(
+                        controller: emailController,
+                        hint: "البريد الإلكتروني",
+                        icon: Icons.email,
                       ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      textDirection: TextDirection.rtl,
-                      obscureText: widget.isObsecure,
-                      decoration: InputDecoration(
-                        hintText: "كلمة السر",
-                        hintTextDirection: TextDirection.rtl,
-                        suffixIcon: const Icon(Icons.lock),
-                        prefixIcon: IconButton(
-                          onPressed: () {
-                            widget.isObsecure = !widget.isObsecure;
-                            widget.onItemChange;
-                            setState(() {});
-                          },
-                          icon:
-                              widget.isObsecure
-                                  ? const Icon(Icons.visibility)
-                                  : const Icon(Icons.visibility_off),
-                        ),
-                        enabledBorder: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(18.0)),
-                          borderSide: BorderSide(
-                            width: 2.5,
-                            color: Color(0xff68316d),
-                          ),
-                        ),
-                        focusedBorder: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(18.0)),
-                          borderSide: BorderSide(
-                            width: 2.5,
-                            color: Color(0xff68316d),
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 10,
-                        ),
+                      customPasswordField(
+                        controller: passwordController,
+                        hint: "كلمة المرور",
                       ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      textDirection: TextDirection.rtl,
-                      obscureText: widget.isObsecure,
-                      decoration: InputDecoration(
-                        hintText: "تأكيد كلمة السر",
-                        suffixIcon: const Icon(Icons.lock),
-                        prefixIcon: IconButton(
-                          onPressed: () {
-                            widget.isObsecure = !widget.isObsecure;
-                            widget.onItemChange;
-                            setState(() {});
-                          },
-                          icon:
-                              widget.isObsecure
-                                  ? const Icon(Icons.visibility)
-                                  : const Icon(Icons.visibility_off),
-                        ),
-                        hintTextDirection: TextDirection.rtl,
-                        enabledBorder: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(18.0)),
-                          borderSide: BorderSide(
-                            width: 2.5,
-                            color: Color(0xff68316d),
-                          ),
-                        ),
-                        focusedBorder: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(18.0)),
-                          borderSide: BorderSide(
-                            width: 2.5,
-                            color: Color(0xff68316d),
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 10,
-                        ),
+                      customPasswordField(
+                        controller: confirmPasswordController,
+                        hint: "تأكيد كلمة المرور",
                       ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      controller: searchTextEditingcontroller,
-                      textDirection: TextDirection.rtl,
-                      decoration: InputDecoration(
-                        hintText: "الرقم التسلسلي للمنظمة",
-                        hintTextDirection: TextDirection.rtl,
-                        suffixIcon:
-                            isTyped
-                                ? IconButton(
-                                  onPressed: () {
-                                    searchTextEditingcontroller.clear();
-                                    setState(
-                                      () {},
-                                    ); // Will be triggered again by the listener
-                                  },
-                                  icon: const Icon(Icons.close),
-                                )
-                                : const Icon(Icons.search),
-                        enabledBorder: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(18.0)),
-                          borderSide: BorderSide(
-                            width: 2.5,
-                            color: Color(0xff68316d),
+                      customTextField(
+                        controller: serialNumberController,
+                        hint: "الرقم التسلسلي للمنظمة",
+                        icon: isTyped ? Icons.close : Icons.search,
+                        onSuffixTap: () {
+                          serialNumberController.clear();
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: booleanValue,
+                            onChanged: (value) {
+                              setState(() {
+                                booleanValue = value!;
+                              });
+                            },
+                          ),
+                          const Expanded(
+                            child: Text(
+                              "أوافق على الشروط والأحكام",
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 55),
+                          backgroundColor: const Color(0xff68316d),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
                           ),
                         ),
-                        focusedBorder: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(18.0)),
-                          borderSide: BorderSide(
-                            width: 2.5,
-                            color: Color(0xff68316d),
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 10,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 48.0),
-              child: Row(
-                children: [
-                  Checkbox(
-                    value: booleanValue,
-                    visualDensity: const VisualDensity(
-                      horizontal: -4,
-                      vertical: -4,
-                    ),
-                    onChanged: (bool? value) {
-                      setState(() {
-                        booleanValue = value!;
-                      });
-                    },
-                  ),
-                  const Text("I agree to the "),
-                  const Text(
-                    "Terms & Privacy",
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ],
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.all(28.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: const ButtonStyle(
-                        backgroundColor: WidgetStatePropertyAll(
-                          Color(0xff68316d),
-                        ),
-                      ),
-                      child: const Padding(
-                        padding: EdgeInsets.only(top: 15.0, bottom: 15),
-                        child: Text(
+                        onPressed: () {
+                          // هنا يمكنك تنفيذ دالة تسجيل لاحقاً
+                        },
+                        child: const Text(
                           "أنشئ حساب",
                           style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
                             fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            "  هل لديك حساب؟",
+                            style: TextStyle(fontSize: 17),
+                          ),
+                          const SizedBox(width: 10),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (ctx) => const LogInPage(),
+                                ),
+                              );
+                            },
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (ctx) => const LogInPage()),
-                    );
-                  },
-                  child: const Text(
-                    "سجل الدخول",
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17),
+                            child: const Text(
+                              "سجل الدخول",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 17,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                   ),
                 ),
-                const Text(" هل لديك حساب؟", style: TextStyle(fontSize: 17)),
               ],
             ),
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget customTextField({
+    required TextEditingController controller,
+    required String hint,
+    IconData? icon,
+    VoidCallback? onSuffixTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          hintText: hint,
+          prefixIcon:
+              icon != null
+                  ? IconButton(icon: Icon(icon), onPressed: onSuffixTap)
+                  : null,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide: const BorderSide(color: Color(0xff68316d), width: 2.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide: const BorderSide(color: Color(0xff68316d), width: 2.5),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 16,
+            horizontal: 10,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget customPasswordField({
+    required TextEditingController controller,
+    required String hint,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: TextField(
+        controller: controller,
+        obscureText: widget.isObsecure,
+        decoration: InputDecoration(
+          hintText: hint,
+          prefixIcon: const Icon(Icons.lock),
+          suffixIcon: IconButton(
+            icon: Icon(
+              widget.isObsecure ? Icons.visibility : Icons.visibility_off,
+            ),
+            onPressed: () {
+              setState(() {
+                widget.isObsecure = !widget.isObsecure;
+              });
+            },
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide: const BorderSide(color: Color(0xff68316d), width: 2.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide: const BorderSide(color: Color(0xff68316d), width: 2.5),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 16,
+            horizontal: 10,
+          ),
         ),
       ),
     );

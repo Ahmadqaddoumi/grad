@@ -49,7 +49,7 @@ class _OTPState extends State<OTP> {
         decoration: InputDecoration(
           hintText: "0",
           hintStyle: TextStyle(
-            color: Colors.white.withOpacity(0.4), // 👈 Adjust opacity here
+            color: Colors.white.withOpacity(0.4),
             fontSize: 27,
             fontWeight: FontWeight.w700,
           ),
