@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:test_app/login/login.dart';
 
 // ignore: must_be_immutable
@@ -17,21 +19,96 @@ class CreateNewAccount extends StatefulWidget {
 }
 
 class _CreateNewAccountState extends State<CreateNewAccount> {
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
+  TextEditingController usernameController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  TextEditingController confirmPasswordController = TextEditingController();
 
   bool booleanValue = false;
 
-  @override
-  void dispose() {
-    usernameController.dispose();
-    emailController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
-    super.dispose();
+  bool isEmailValid(String email) {
+    return RegExp(
+      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@"
+      r"[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$",
+    ).hasMatch(email);
+  }
+
+  bool isPasswordStrong(String password) {
+    return password.length >= 8;
+  }
+
+  Future<void> registerVolunteer() async {
+    final username = usernameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
+
+    if (username.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('يرجى تعبئة جميع الحقول')));
+      return;
+    }
+
+    if (!isEmailValid(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('يرجى إدخال بريد إلكتروني صحيح')),
+      );
+      return;
+    }
+
+    if (!isPasswordStrong(password)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
+        ),
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('كلمتا المرور غير متطابقتين')),
+      );
+      return;
+    }
+
+    if (!booleanValue) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('يجب الموافقة على الشروط والأحكام')),
+      );
+      return;
+    }
+
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      final uid = userCredential.user!.uid;
+
+      // حفظ معلومات المتطوع في Firestore
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'uid': uid,
+        'username': username,
+        'email': email,
+        'accountType': 'Volunteer', // مهم نفرق انه متطوع
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم إنشاء الحساب بنجاح! 👏')),
+      );
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const LogInPage()),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('حدث خطأ: ${e.toString()}')));
+    }
   }
 
   @override
@@ -43,8 +120,8 @@ class _CreateNewAccountState extends State<CreateNewAccount> {
           backgroundColor: const Color(0xff68316d),
           elevation: 0,
           title: const Text(
-            'إنشاء حساب متطوع',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            'تسجيل كمتطوع',
+            style: TextStyle(color: Colors.white),
           ),
           centerTitle: true,
           leading: IconButton(
@@ -82,23 +159,20 @@ class _CreateNewAccountState extends State<CreateNewAccount> {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     children: [
-                      customTextField(
-                        controller: usernameController,
-                        hint: "اسم المستخدم",
-                        icon: Icons.person,
+                      buildTextField(
+                        usernameController,
+                        "اسم المستخدم",
+                        Icons.person,
                       ),
-                      customTextField(
-                        controller: emailController,
-                        hint: "البريد الإلكتروني",
-                        icon: Icons.email,
+                      buildTextField(
+                        emailController,
+                        "البريد الإلكتروني",
+                        Icons.email,
                       ),
-                      customPasswordField(
-                        controller: passwordController,
-                        hint: "كلمة المرور",
-                      ),
-                      customPasswordField(
-                        controller: confirmPasswordController,
-                        hint: "تأكيد كلمة المرور",
+                      buildPasswordField(passwordController, "كلمة المرور"),
+                      buildPasswordField(
+                        confirmPasswordController,
+                        "تأكيد كلمة المرور",
                       ),
                       const SizedBox(height: 20),
                       Row(
@@ -128,9 +202,7 @@ class _CreateNewAccountState extends State<CreateNewAccount> {
                             borderRadius: BorderRadius.circular(15),
                           ),
                         ),
-                        onPressed: () {
-                          // تنفيذ إنشاء الحساب
-                        },
+                        onPressed: registerVolunteer,
                         child: const Text(
                           "أنشئ حساب",
                           style: TextStyle(
@@ -144,15 +216,9 @@ class _CreateNewAccountState extends State<CreateNewAccount> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                            "  هل لديك حساب؟",
-                            style: TextStyle(fontSize: 17),
-                          ),
-                          const SizedBox(width: 10),
                           GestureDetector(
                             onTap: () {
-                              Navigator.push(
-                                context,
+                              Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(
                                   builder: (ctx) => const LogInPage(),
                                 ),
@@ -166,9 +232,12 @@ class _CreateNewAccountState extends State<CreateNewAccount> {
                               ),
                             ),
                           ),
+                          const Text(
+                            " هل لديك حساب؟",
+                            style: TextStyle(fontSize: 17),
+                          ),
                         ],
                       ),
-
                       const SizedBox(height: 20),
                     ],
                   ),
@@ -181,22 +250,18 @@ class _CreateNewAccountState extends State<CreateNewAccount> {
     );
   }
 
-  Widget customTextField({
-    required TextEditingController controller,
-    required String hint,
-    IconData? icon,
-    VoidCallback? onSuffixTap,
-  }) {
+  Widget buildTextField(
+    TextEditingController controller,
+    String hint,
+    IconData icon,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: TextField(
         controller: controller,
         decoration: InputDecoration(
           hintText: hint,
-          prefixIcon:
-              icon != null
-                  ? IconButton(icon: Icon(icon), onPressed: onSuffixTap)
-                  : null,
+          prefixIcon: Icon(icon),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(18),
             borderSide: const BorderSide(color: Color(0xff68316d), width: 2.5),
@@ -214,10 +279,7 @@ class _CreateNewAccountState extends State<CreateNewAccount> {
     );
   }
 
-  Widget customPasswordField({
-    required TextEditingController controller,
-    required String hint,
-  }) {
+  Widget buildPasswordField(TextEditingController controller, String hint) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: TextField(

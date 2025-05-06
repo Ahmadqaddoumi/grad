@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:test_app/login/login.dart';
 
 // ignore: must_be_immutable
@@ -17,35 +19,121 @@ class CreateAccCharity extends StatefulWidget {
 }
 
 class _CreateAccCharityState extends State<CreateAccCharity> {
-  // Controllers للحقل
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
-  final TextEditingController serialNumberController = TextEditingController();
+  TextEditingController usernameController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  TextEditingController confirmPasswordController = TextEditingController();
+  TextEditingController serialController = TextEditingController();
 
-  bool isTyped = false;
   bool booleanValue = false;
 
-  @override
-  void initState() {
-    super.initState();
-    serialNumberController.addListener(() {
-      setState(() {
-        isTyped = serialNumberController.text.isNotEmpty;
-      });
-    });
+  bool isEmailValid(String email) {
+    return RegExp(
+      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@"
+      r"[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$",
+    ).hasMatch(email);
   }
 
-  @override
-  void dispose() {
-    usernameController.dispose();
-    emailController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
-    serialNumberController.dispose();
-    super.dispose();
+  bool isPasswordStrong(String password) {
+    return password.length >= 8;
+  }
+
+  Future<bool> checkSerialNumberExists(String serialNumber) async {
+    final doc =
+        await FirebaseFirestore.instance
+            .collection('serial_numbers')
+            .doc(serialNumber)
+            .get();
+    return doc.exists;
+  }
+
+  Future<void> registerCharity() async {
+    final username = usernameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
+    final serialNumber = serialController.text.trim();
+
+    if (username.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty ||
+        serialNumber.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('يرجى تعبئة جميع الحقول')));
+      return;
+    }
+
+    if (!isEmailValid(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('يرجى إدخال بريد إلكتروني صحيح')),
+      );
+      return;
+    }
+
+    if (!isPasswordStrong(password)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
+        ),
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('كلمتا المرور غير متطابقتين')),
+      );
+      return;
+    }
+
+    if (!booleanValue) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('يجب الموافقة على الشروط والأحكام')),
+      );
+      return;
+    }
+
+    final serialExists = await checkSerialNumberExists(serialNumber);
+
+    if (!serialExists) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('الرقم التسلسلي غير صحيح')));
+      return;
+    }
+
+    try {
+      // 1. إنشاء الحساب
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      // 2. بعد نجاح إنشاء الحساب، خزن بياناته في Firestore
+      final uid = userCredential.user!.uid;
+
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'uid': uid,
+        'username': username,
+        'email': email,
+        'accountType': 'Charity', // ثابت هنا لأنه تسجيل جمعية
+        'serialNumber': serialNumber, // ضروري للجمعيات
+      });
+
+      // 3. عرض رسالة نجاح
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم إنشاء الحساب بنجاح! 👏')),
+      );
+
+      // 4. الذهاب إلى صفحة تسجيل الدخول
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const LogInPage()),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('حدث خطأ: ${e.toString()}')));
+    }
   }
 
   @override
@@ -57,8 +145,8 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
           backgroundColor: const Color(0xff68316d),
           elevation: 0,
           title: const Text(
-            "إنشاء حساب منظمة",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            'تسجيل كمنظمة',
+            style: TextStyle(color: Colors.white),
           ),
           centerTitle: true,
           leading: IconButton(
@@ -96,31 +184,25 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     children: [
-                      customTextField(
-                        controller: usernameController,
-                        hint: "اسم المستخدم",
-                        icon: Icons.person,
+                      buildTextField(
+                        usernameController,
+                        "اسم المستخدم",
+                        Icons.person,
                       ),
-                      customTextField(
-                        controller: emailController,
-                        hint: "البريد الإلكتروني",
-                        icon: Icons.email,
+                      buildTextField(
+                        emailController,
+                        "البريد الإلكتروني",
+                        Icons.email,
                       ),
-                      customPasswordField(
-                        controller: passwordController,
-                        hint: "كلمة المرور",
+                      buildPasswordField(passwordController, "كلمة المرور"),
+                      buildPasswordField(
+                        confirmPasswordController,
+                        "تأكيد كلمة المرور",
                       ),
-                      customPasswordField(
-                        controller: confirmPasswordController,
-                        hint: "تأكيد كلمة المرور",
-                      ),
-                      customTextField(
-                        controller: serialNumberController,
-                        hint: "الرقم التسلسلي للمنظمة",
-                        icon: isTyped ? Icons.close : Icons.search,
-                        onSuffixTap: () {
-                          serialNumberController.clear();
-                        },
+                      buildTextField(
+                        serialController,
+                        "الرقم التسلسلي للمنظمة",
+                        Icons.search,
                       ),
                       const SizedBox(height: 20),
                       Row(
@@ -150,9 +232,7 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
                             borderRadius: BorderRadius.circular(15),
                           ),
                         ),
-                        onPressed: () {
-                          // هنا يمكنك تنفيذ دالة تسجيل لاحقاً
-                        },
+                        onPressed: registerCharity,
                         child: const Text(
                           "أنشئ حساب",
                           style: TextStyle(
@@ -167,20 +247,18 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Text(
-                            "  هل لديك حساب؟",
+                            " هل لديك حساب؟",
                             style: TextStyle(fontSize: 17),
                           ),
                           const SizedBox(width: 10),
                           GestureDetector(
                             onTap: () {
-                              Navigator.push(
-                                context,
+                              Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(
                                   builder: (ctx) => const LogInPage(),
                                 ),
                               );
                             },
-
                             child: const Text(
                               "سجل الدخول",
                               style: TextStyle(
@@ -203,22 +281,18 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
     );
   }
 
-  Widget customTextField({
-    required TextEditingController controller,
-    required String hint,
-    IconData? icon,
-    VoidCallback? onSuffixTap,
-  }) {
+  Widget buildTextField(
+    TextEditingController controller,
+    String hint,
+    IconData icon,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: TextField(
         controller: controller,
         decoration: InputDecoration(
           hintText: hint,
-          prefixIcon:
-              icon != null
-                  ? IconButton(icon: Icon(icon), onPressed: onSuffixTap)
-                  : null,
+          prefixIcon: Icon(icon),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(18),
             borderSide: const BorderSide(color: Color(0xff68316d), width: 2.5),
@@ -236,10 +310,7 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
     );
   }
 
-  Widget customPasswordField({
-    required TextEditingController controller,
-    required String hint,
-  }) {
+  Widget buildPasswordField(TextEditingController controller, String hint) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: TextField(

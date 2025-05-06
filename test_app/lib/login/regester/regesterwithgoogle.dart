@@ -1,18 +1,20 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:test_app/login/regester/create_acc.dart';
-import 'package:test_app/login/regester/cretae_acc_charity.dart';
+import 'package:test_app/home.dart';
 
-class Register extends StatefulWidget {
-  final bool isFromGoogle;
-  final String? uid;
+class ChooseAccountTypeAfterGoogle extends StatefulWidget {
+  final String uid;
 
-  const Register({super.key, this.isFromGoogle = false, this.uid});
+  const ChooseAccountTypeAfterGoogle({super.key, required this.uid});
 
   @override
-  State<Register> createState() => _RegisterState();
+  State<ChooseAccountTypeAfterGoogle> createState() =>
+      _ChooseAccountTypeAfterGoogleState();
 }
 
-class _RegisterState extends State<Register> {
+class _ChooseAccountTypeAfterGoogleState
+    extends State<ChooseAccountTypeAfterGoogle> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -33,7 +35,7 @@ class _RegisterState extends State<Register> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.pop(context); // يرجع للصفحة السابقة
+            Navigator.pop(context);
           },
         ),
       ),
@@ -72,15 +74,19 @@ class _RegisterState extends State<Register> {
                       ),
                       elevation: 5,
                     ),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder:
-                              (context) => CreateAccCharity(
-                                isObsecure: true,
-                                onItemChange: () {},
-                              ),
-                        ),
+                    onPressed: () async {
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(widget.uid)
+                          .set({
+                            'uid': widget.uid,
+                            'username':
+                                FirebaseAuth.instance.currentUser!.displayName,
+                            'email': FirebaseAuth.instance.currentUser!.email,
+                            'accountType': 'Charity', // منظمة
+                          });
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (context) => const Home()),
                       );
                     },
                     child: const Text(
@@ -102,15 +108,19 @@ class _RegisterState extends State<Register> {
                       ),
                       elevation: 5,
                     ),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder:
-                              (context) => CreateNewAccount(
-                                isObsecure: true,
-                                onItemChange: () {},
-                              ),
-                        ),
+                    onPressed: () async {
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(widget.uid)
+                          .set({
+                            'uid': widget.uid,
+                            'username':
+                                FirebaseAuth.instance.currentUser!.displayName,
+                            'email': FirebaseAuth.instance.currentUser!.email,
+                            'accountType': 'Volunteer', // متطوع
+                          });
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (context) => const Home()),
                       );
                     },
                     child: const Text(

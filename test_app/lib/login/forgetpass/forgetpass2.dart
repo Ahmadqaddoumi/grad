@@ -1,202 +1,171 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:test_app/login/forgetpass/newpass.dart';
+// import 'package:flutter/material.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:test_app/login/forgetpass/newpass.dart';
 
-class OTPVerificationPage extends StatefulWidget {
-  const OTPVerificationPage({super.key});
+// class OTPVerificationPage extends StatefulWidget {
+//   final String verificationId;
+//   const OTPVerificationPage({required this.verificationId, Key? key})
+//     : super(key: key);
 
-  @override
-  State<OTPVerificationPage> createState() => _OTPVerificationPageState();
-}
+//   @override
+//   State<OTPVerificationPage> createState() => _OTPVerificationPageState();
+// }
 
-class _OTPVerificationPageState extends State<OTPVerificationPage> {
-  final List<TextEditingController> controllers = List.generate(
-    4,
-    (_) => TextEditingController(),
-  );
-  final List<FocusNode> focusNodes = List.generate(4, (_) => FocusNode());
+// class _OTPVerificationPageState extends State<OTPVerificationPage> {
+//   final List<TextEditingController> controllers = List.generate(
+//     6,
+//     (_) => TextEditingController(),
+//   );
+//   final List<FocusNode> focusNodes = List.generate(6, (_) => FocusNode());
+//   bool isLoading = false;
 
-  Timer? timer;
-  int start = 30;
+//   bool isAllFilled() {
+//     return controllers.every((c) => c.text.isNotEmpty);
+//   }
 
-  @override
-  void initState() {
-    super.initState();
-    startTimer();
-  }
+//   void verifyOTP() async {
+//     String smsCode = controllers.map((c) => c.text).join();
 
-  void startTimer() {
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (start == 0) {
-        timer.cancel();
-      } else {
-        setState(() {
-          start--;
-        });
-      }
-    });
-  }
+//     if (smsCode.length != 6) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         const SnackBar(content: Text('يرجى إدخال رمز التحقق كاملاً')),
+//       );
+//       return;
+//     }
 
-  @override
-  void dispose() {
-    for (var controller in controllers) {
-      controller.dispose();
-    }
-    for (var node in focusNodes) {
-      node.dispose();
-    }
-    timer?.cancel();
-    super.dispose();
-  }
+//     setState(() {
+//       isLoading = true;
+//     });
 
-  bool isAllFilled() {
-    return controllers.every((c) => c.text.isNotEmpty);
-  }
+//     try {
+//       PhoneAuthCredential credential = PhoneAuthProvider.credential(
+//         verificationId: widget.verificationId,
+//         smsCode: smsCode,
+//       );
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        body: Column(
-          children: [
-            const Expanded(
-              flex: 2,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.email, size: 120, color: Color(0xff68316d)),
-                    SizedBox(height: 20),
-                    Text(
-                      'تحقق من بريدك الإلكتروني',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xff68316d),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 15),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Text(
-                        'لقد أرسلنا رمز تحقق إلى بريدك الإلكتروني، الرجاء إدخال الرمز أدناه.',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xff68316d),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 3,
-              child: Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Color(0xff68316d),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(40),
-                    topRight: Radius.circular(40),
-                  ),
-                ),
-                padding: const EdgeInsets.all(30),
-                child: Column(
-                  children: [
-                    Form(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(
-                          4,
-                          (index) => buildOTPField(index),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    Text(
-                      start > 0
-                          ? 'يمكنك إعادة الإرسال خلال $start ثانية'
-                          : 'لم تستلم الرمز؟ أعد الإرسال',
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                    const SizedBox(height: 30),
-                    ElevatedButton(
-                      onPressed:
-                          isAllFilled()
-                              ? () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (context) => Newpassword(
-                                          isObsecure: true,
-                                          onItemChange: () {},
-                                        ),
-                                  ),
-                                );
-                              }
-                              : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xffce9dd2),
-                        minimumSize: const Size(double.infinity, 55),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                      child: const Text(
-                        "تأكيد الرمز",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+//       await FirebaseAuth.instance.signInWithCredential(credential);
 
-  Widget buildOTPField(int index) {
-    return SizedBox(
-      width: 60,
-      child: TextField(
-        controller: controllers[index],
-        focusNode: focusNodes[index],
-        keyboardType: TextInputType.number,
-        textAlign: TextAlign.center,
-        style: const TextStyle(color: Colors.white, fontSize: 24),
-        maxLength: 1,
-        decoration: InputDecoration(
-          counterText: "",
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.white, width: 2),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.white, width: 2),
-          ),
-        ),
-        onChanged: (value) {
-          if (value.isNotEmpty && index < 3) {
-            FocusScope.of(context).requestFocus(focusNodes[index + 1]);
-          } else if (value.isEmpty && index > 0) {
-            FocusScope.of(context).requestFocus(focusNodes[index - 1]);
-          }
-          setState(() {});
-        },
-      ),
-    );
-  }
-}
+//       Navigator.pushReplacement(
+//         context,
+//         MaterialPageRoute(builder: (context) => const NewPasswordPage()),
+//       );
+//     } catch (e) {
+//       ScaffoldMessenger.of(
+//         context,
+//       ).showSnackBar(SnackBar(content: Text('رمز التحقق غير صحيح')));
+//     } finally {
+//       setState(() {
+//         isLoading = false;
+//       });
+//     }
+//   }
+
+//   Widget buildOTPField(int index) {
+//     return SizedBox(
+//       width: 50,
+//       child: TextField(
+//         controller: controllers[index],
+//         focusNode: focusNodes[index],
+//         keyboardType: TextInputType.number,
+//         textAlign: TextAlign.center,
+//         style: const TextStyle(color: Colors.white, fontSize: 24),
+//         maxLength: 1,
+//         decoration: InputDecoration(
+//           counterText: "",
+//           enabledBorder: OutlineInputBorder(
+//             borderRadius: BorderRadius.circular(12),
+//             borderSide: const BorderSide(color: Colors.white, width: 2),
+//           ),
+//           focusedBorder: OutlineInputBorder(
+//             borderRadius: BorderRadius.circular(12),
+//             borderSide: const BorderSide(color: Colors.white, width: 2),
+//           ),
+//         ),
+//         onChanged: (value) {
+//           if (value.isNotEmpty && index < 5) {
+//             FocusScope.of(context).requestFocus(focusNodes[index + 1]);
+//           } else if (value.isEmpty && index > 0) {
+//             FocusScope.of(context).requestFocus(focusNodes[index - 1]);
+//           }
+//           setState(() {});
+//         },
+//       ),
+//     );
+//   }
+
+//   @override
+//   void dispose() {
+//     for (var controller in controllers) {
+//       controller.dispose();
+//     }
+//     for (var node in focusNodes) {
+//       node.dispose();
+//     }
+//     super.dispose();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return GestureDetector(
+//       onTap: () => FocusScope.of(context).unfocus(),
+//       child: Scaffold(
+//         backgroundColor: Colors.grey[100],
+//         appBar: AppBar(
+//           backgroundColor: const Color(0xff68316d),
+//           title: const Text('تحقق من الرمز'),
+//           centerTitle: true,
+//         ),
+//         body: SingleChildScrollView(
+//           child: Padding(
+//             padding: const EdgeInsets.all(24.0),
+//             child: Column(
+//               children: [
+//                 const SizedBox(height: 50),
+//                 const Icon(Icons.sms, size: 100, color: Color(0xff68316d)),
+//                 const SizedBox(height: 30),
+//                 const Text(
+//                   'أدخل رمز التحقق المرسل إلى رقم هاتفك',
+//                   textAlign: TextAlign.center,
+//                   style: TextStyle(
+//                     color: Color(0xff68316d),
+//                     fontSize: 20,
+//                     fontWeight: FontWeight.bold,
+//                   ),
+//                 ),
+//                 const SizedBox(height: 30),
+//                 Row(
+//                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//                   children: List.generate(6, (index) => buildOTPField(index)),
+//                 ),
+//                 const SizedBox(height: 40),
+//                 ElevatedButton(
+//                   style: ElevatedButton.styleFrom(
+//                     backgroundColor: const Color(0xff68316d),
+//                     padding: const EdgeInsets.symmetric(
+//                       vertical: 15,
+//                       horizontal: 80,
+//                     ),
+//                     shape: RoundedRectangleBorder(
+//                       borderRadius: BorderRadius.circular(15),
+//                     ),
+//                   ),
+//                   onPressed: isLoading ? null : verifyOTP,
+//                   child:
+//                       isLoading
+//                           ? const CircularProgressIndicator(color: Colors.white)
+//                           : const Text(
+//                             'تأكيد الرمز',
+//                             style: TextStyle(
+//                               fontSize: 20,
+//                               fontWeight: FontWeight.bold,
+//                             ),
+//                           ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
