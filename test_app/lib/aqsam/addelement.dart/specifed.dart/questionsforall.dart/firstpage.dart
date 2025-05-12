@@ -24,6 +24,7 @@ class Firstpage extends StatefulWidget {
 
 class _FirstpageState extends State<Firstpage> {
   final TextEditingController _initiativeController = TextEditingController();
+  final TextEditingController _supporterController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -39,17 +40,42 @@ class _FirstpageState extends State<Firstpage> {
                 top: 20,
                 bottom: 20,
               ),
-              child: TextField(
-                controller: _initiativeController,
-                decoration: const InputDecoration(
-                  hintText: "اسم المبادرة",
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.black, width: 1.5),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _supporterController,
+                    textDirection: TextDirection.rtl,
+                    decoration: const InputDecoration(
+                      hintText: "اسم الجمعية",
+                      hintTextDirection: TextDirection.rtl,
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black, width: 1.5),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Color(0xff7433d3),
+                          width: 3,
+                        ),
+                      ),
+                    ),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xff7433d3), width: 3),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _initiativeController,
+                    decoration: const InputDecoration(
+                      hintText: "اسم المبادرة",
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black, width: 1.5),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Color(0xff7433d3),
+                          width: 3,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             );
           } else if (index <= widget.questionsf.length) {
@@ -67,6 +93,7 @@ class _FirstpageState extends State<Firstpage> {
                   }
 
                   if (_initiativeController.text.trim().isEmpty ||
+                      _supporterController.text.trim().isEmpty ||
                       answersFirstPage.length != widget.questionsf.length) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -83,6 +110,8 @@ class _FirstpageState extends State<Firstpage> {
                           questionssecond: widget.questionsf2,
                           nameqesem3: widget.nameqesem2,
                           icon1: widget.icon,
+                          supporter: _supporterController.text.trim(),
+
                           initiativeName: _initiativeController.text.trim(),
                           answersFirstPage: answersFirstPage,
                         );

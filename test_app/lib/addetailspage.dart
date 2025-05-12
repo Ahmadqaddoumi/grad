@@ -25,7 +25,7 @@ class AdDetailsPage extends StatelessWidget {
         backgroundColor: const Color(0xFF68316D),
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
-          data['initiativeName'] ?? "تفاصيل الإعلان",
+          data['initiativeName']?.toString() ?? "تفاصيل الإعلان",
           style: const TextStyle(color: Colors.white),
         ),
         centerTitle: true,
@@ -35,15 +35,32 @@ class AdDetailsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            buildInfoCard("📍 الموقع", data['location'] ?? 'غير محدد'),
-            const SizedBox(height: 12),
-            buildInfoCard("📝 وصف الإعلان", data['note'] ?? 'لا يوجد وصف'),
+            buildInfoCard(
+              "📍 الموقع",
+              data['location']?.toString() ?? 'غير محدد',
+            ),
 
-            if ((data['initiativeType'] ?? '').toString().isNotEmpty)
-              buildInfoCard("🎯 نوع المبادرة", data['initiativeType']),
+            buildInfoCard(
+              "📝 وصف الإعلان",
+              data['note']?.toString() ?? 'لا يوجد وصف',
+            ),
 
-            if ((data['initiativeGoal'] ?? '').toString().isNotEmpty)
-              buildInfoCard("🎯 الهدف من المبادرة", data['initiativeGoal']),
+            if ((data['supporter']?.toString().isNotEmpty ?? false))
+              buildInfoCard(
+                "🏛️ الجهة الداعمة",
+                data['supporter']?.toString() ?? 'غير محدد',
+              ),
+
+            buildInfoCard(
+              "🎯 نوع المبادرة",
+              data['initiativeType']?.toString() ?? 'غير محدد',
+            ),
+
+            if ((data['initiativeGoal']?.toString().isNotEmpty ?? false))
+              buildInfoCard(
+                "🎯 الهدف من المبادرة",
+                data['initiativeGoal']?.toString() ?? 'غير محدد',
+              ),
 
             const SizedBox(height: 20),
             const Text(

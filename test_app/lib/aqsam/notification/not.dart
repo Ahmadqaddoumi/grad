@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:test_app/aqsam/notification/editadpage.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -51,6 +52,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
               final location = ad['location'] ?? 'بدون موقع';
               final note = ad['note'] ?? 'لا توجد ملاحظات';
               final date = (ad['date'] as Timestamp?)?.toDate();
+              final supporter =
+                  ad.data().toString().contains('supporter') &&
+                          ad['supporter'] != null
+                      ? ad['supporter'].toString()
+                      : 'غير محدد';
               final answers1 =
                   ad['answersFirstPage'] as Map<String, dynamic>? ?? {};
               final answers2 =
@@ -92,55 +98,85 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                 ),
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () async {
-                                final confirm = await showDialog(
-                                  context: context,
-                                  builder:
-                                      (_) => AlertDialog(
-                                        title: const Text("تأكيد الحذف"),
-                                        content: const Text(
-                                          "هل أنت متأكد من حذف هذا الإعلان؟",
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed:
-                                                () => Navigator.pop(
-                                                  context,
-                                                  false,
-                                                ),
-                                            child: const Text("إلغاء"),
+                            Column(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () async {
+                                    final confirm = await showDialog(
+                                      context: context,
+                                      builder:
+                                          (_) => AlertDialog(
+                                            title: const Text("تأكيد الحذف"),
+                                            content: const Text(
+                                              "هل أنت متأكد من حذف هذا الإعلان؟",
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed:
+                                                    () => Navigator.pop(
+                                                      context,
+                                                      false,
+                                                    ),
+                                                child: const Text("إلغاء"),
+                                              ),
+                                              TextButton(
+                                                onPressed:
+                                                    () => Navigator.pop(
+                                                      context,
+                                                      true,
+                                                    ),
+                                                child: const Text("حذف"),
+                                              ),
+                                            ],
                                           ),
-                                          TextButton(
-                                            onPressed:
-                                                () => Navigator.pop(
-                                                  context,
-                                                  true,
-                                                ),
-                                            child: const Text("حذف"),
-                                          ),
-                                        ],
-                                      ),
-                                );
+                                    );
 
-                                if (confirm == true) {
-                                  await FirebaseFirestore.instance
-                                      .collection('ads')
-                                      .doc(docId)
-                                      .delete();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text("تم حذف الإعلان"),
-                                    ),
-                                  );
-                                }
-                              },
+                                    if (confirm == true) {
+                                      await FirebaseFirestore.instance
+                                          .collection('ads')
+                                          .doc(docId)
+                                          .delete();
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text("تم حذف الإعلان"),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.edit,
+                                    color: Colors.grey,
+                                  ),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (_) => EditAdPage(
+                                              adId: docId,
+                                              adData:
+                                                  ad.data()
+                                                      as Map<String, dynamic>,
+                                            ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
                           ],
                         ),
                         const SizedBox(height: 6),
                         Text('📍 الموقع: $location'),
+                        Text('🏛️ الجهة الداعمة: $supporter'),
                         Text(
                           '📅 التاريخ: ${date != null ? "${date.day}/${date.month}/${date.year}" : "غير محدد"}',
                         ),

@@ -1,10 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:test_app/login/login.dart'; // تأكد من أن الملف موجود والمسار صحيح
 import 'package:test_app/splash.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // مهم جداً
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(const MyApp());
 }
@@ -14,18 +15,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      locale: Locale('ar'), // لغة التطبيق
-      supportedLocales: [
-        Locale('ar'), // اللغات المدعومة
-      ],
-      localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate, // تعريب عناصر الماتيريال
-        GlobalWidgetsLocalizations.delegate, // تعريب عناصر الواجهة
-        GlobalCupertinoLocalizations.delegate, // تعريب عناصر iOS
+    return MaterialApp(
+      locale: const Locale('ar'),
+      supportedLocales: const [Locale('ar')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
       ],
       debugShowCheckedModeBanner: false,
-      home: SplashScreen(), // أول شاشة تظهر
+      home: const SplashScreen(),
+      routes: {'/login': (context) => const LogInPage()},
     );
   }
 }

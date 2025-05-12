@@ -12,6 +12,7 @@ class Secondpage extends StatefulWidget {
   final String nameqesem3;
   final IconData icon1;
   final String initiativeName;
+  final String supporter;
 
   Secondpage({
     super.key,
@@ -19,6 +20,7 @@ class Secondpage extends StatefulWidget {
     required this.answersFirstPage,
     required this.nameqesem3,
     required this.icon1,
+    required this.supporter,
     required this.initiativeName,
   });
 
@@ -212,6 +214,7 @@ class _SecondpageState extends State<Secondpage> {
                                   'uid': uid,
                                   'category': widget.nameqesem3,
                                   'subCategory': widget.icon1.codePoint,
+                                  'supporter': widget.supporter,
                                   'initiativeName': widget.initiativeName,
                                   'location': location,
                                   'note': note,

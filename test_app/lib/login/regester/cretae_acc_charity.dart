@@ -1,3 +1,5 @@
+// 🔐 CreateAccCharity.dart (محسن)
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,30 +21,27 @@ class CreateAccCharity extends StatefulWidget {
 }
 
 class _CreateAccCharityState extends State<CreateAccCharity> {
-  TextEditingController usernameController = TextEditingController();
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
-  TextEditingController confirmPasswordController = TextEditingController();
-  TextEditingController serialController = TextEditingController();
+  final usernameController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+  final serialController = TextEditingController();
 
   bool booleanValue = false;
 
   bool isEmailValid(String email) {
     return RegExp(
-      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@"
-      r"[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$",
+      r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}",
     ).hasMatch(email);
   }
 
-  bool isPasswordStrong(String password) {
-    return password.length >= 8;
-  }
+  bool isPasswordStrong(String password) => password.length >= 8;
 
   Future<bool> checkSerialNumberExists(String serialNumber) async {
     final doc =
         await FirebaseFirestore.instance
             .collection('serial_numbers')
-            .doc(serialNumber)
+            .doc(serialNumber.trim())
             .get();
     return doc.exists;
   }
@@ -50,90 +49,77 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
   Future<void> registerCharity() async {
     final username = usernameController.text.trim();
     final email = emailController.text.trim();
-    final password = passwordController.text.trim();
-    final confirmPassword = confirmPasswordController.text.trim();
+    final password = passwordController.text;
+    final confirmPassword = confirmPasswordController.text;
     final serialNumber = serialController.text.trim();
 
-    if (username.isEmpty ||
-        email.isEmpty ||
-        password.isEmpty ||
-        confirmPassword.isEmpty ||
-        serialNumber.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('يرجى تعبئة جميع الحقول')));
-      return;
+    if ([
+      username,
+      email,
+      password,
+      confirmPassword,
+      serialNumber,
+    ].any((v) => v.isEmpty)) {
+      return _showError("يرجى تعبئة جميع الحقول");
     }
 
     if (!isEmailValid(email)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إدخال بريد إلكتروني صحيح')),
-      );
-      return;
+      return _showError("يرجى إدخال بريد إلكتروني صحيح");
     }
 
     if (!isPasswordStrong(password)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
-        ),
-      );
-      return;
+      return _showError("كلمة المرور يجب أن تكون 8 أحرف على الأقل");
     }
 
     if (password != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('كلمتا المرور غير متطابقتين')),
-      );
-      return;
+      return _showError("كلمتا المرور غير متطابقتين");
     }
 
     if (!booleanValue) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يجب الموافقة على الشروط والأحكام')),
-      );
-      return;
+      return _showError("يجب الموافقة على الشروط والأحكام");
     }
 
     final serialExists = await checkSerialNumberExists(serialNumber);
-
-    if (!serialExists) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('الرقم التسلسلي غير صحيح')));
-      return;
-    }
+    if (!serialExists) return _showError("الرقم التسلسلي غير صحيح");
 
     try {
-      // 1. إنشاء الحساب
-      UserCredential userCredential = await FirebaseAuth.instance
+      final userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
 
-      // 2. بعد نجاح إنشاء الحساب، خزن بياناته في Firestore
       final uid = userCredential.user!.uid;
 
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'uid': uid,
         'username': username,
         'email': email,
-        'accountType': 'Charity', // ثابت هنا لأنه تسجيل جمعية
-        'serialNumber': serialNumber, // ضروري للجمعيات
+        'accountType': 'Charity',
+        'serialNumber': serialNumber,
       });
 
-      // 3. عرض رسالة نجاح
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم إنشاء الحساب بنجاح! 👏')),
-      );
-
-      // 4. الذهاب إلى صفحة تسجيل الدخول
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const LogInPage()),
-      );
-    } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('حدث خطأ: ${e.toString()}')));
+      ).showSnackBar(const SnackBar(content: Text('تم إنشاء الحساب بنجاح! ✅')));
+
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const LogInPage()));
+    } catch (e) {
+      String msg = "حدث خطأ غير متوقع";
+      if (e is FirebaseAuthException) {
+        if (e.code == 'email-already-in-use') {
+          msg = 'البريد الإلكتروني مستخدم بالفعل';
+        } else if (e.code == 'weak-password') {
+          msg = 'كلمة المرور ضعيفة';
+        }
+      }
+      _showError(msg);
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -210,9 +196,7 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
                           Checkbox(
                             value: booleanValue,
                             onChanged: (value) {
-                              setState(() {
-                                booleanValue = value!;
-                              });
+                              setState(() => booleanValue = value!);
                             },
                           ),
                           const Expanded(
@@ -252,13 +236,12 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
                           ),
                           const SizedBox(width: 10),
                           GestureDetector(
-                            onTap: () {
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (ctx) => const LogInPage(),
+                            onTap:
+                                () => Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(
+                                    builder: (_) => const LogInPage(),
+                                  ),
                                 ),
-                              );
-                            },
                             child: const Text(
                               "سجل الدخول",
                               style: TextStyle(
@@ -324,9 +307,7 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
               widget.isObsecure ? Icons.visibility : Icons.visibility_off,
             ),
             onPressed: () {
-              setState(() {
-                widget.isObsecure = !widget.isObsecure;
-              });
+              setState(() => widget.isObsecure = !widget.isObsecure);
             },
           ),
           enabledBorder: OutlineInputBorder(

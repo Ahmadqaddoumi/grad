@@ -123,7 +123,7 @@ class SectionAdsPage extends StatelessWidget {
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-        color: const Color(0xFF1E2A38), // updated card color
+        color: const Color(0xFF1E2A38),
         elevation: 4,
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -144,6 +144,17 @@ class SectionAdsPage extends StatelessWidget {
                         fontSize: 16,
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      data.containsKey('supporter') && data['supporter'] != null
+                          ? data['supporter'].toString()
+                          : "جهة غير معروفة",
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white60,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 5),
@@ -207,7 +218,7 @@ class SectionAdsPage extends StatelessWidget {
                           ),
                         );
                       } else {
-                        await favRef.delete(); // بدون رسالة إزالة
+                        await favRef.delete();
                       }
                     },
                   );
@@ -223,10 +234,7 @@ class SectionAdsPage extends StatelessWidget {
   Widget buildDefaultAdCard(DocumentSnapshot ad, BuildContext context) {
     return Card(
       margin: const EdgeInsets.all(10),
-      color: const Color(
-        0xFF2E3A59,
-      ), // رمادي مزرق فاتح قليلًا، يبرز فوق الخلفية
-
+      color: const Color(0xFF2E3A59),
       shadowColor: const Color.fromARGB(255, 218, 213, 213),
       shape: Border.all(color: Colors.white, width: 1),
       elevation: 5,
@@ -234,6 +242,12 @@ class SectionAdsPage extends StatelessWidget {
         title: Text(
           ad['initiativeName'] ?? 'بدون اسم',
           style: const TextStyle(color: Colors.white),
+        ),
+        subtitle: Text(
+          ad.data().toString().contains('supporter') && ad['supporter'] != null
+              ? ad['supporter'].toString()
+              : 'جهة غير معروفة',
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
         ),
         trailing: Text(
           (ad['date'] as Timestamp?) != null

@@ -18,6 +18,7 @@ class _VolunteerState extends State<Volunteer> {
   String formattedDate = 'اختر تاريخ النشاط';
 
   final _initiativeController = TextEditingController();
+  final _supporterController = TextEditingController();
   final _typeController = TextEditingController();
   final _goalController = TextEditingController();
   final _locationController = TextEditingController();
@@ -78,6 +79,7 @@ class _VolunteerState extends State<Volunteer> {
 
     if (uid == null ||
         _initiativeController.text.trim().isEmpty ||
+        _supporterController.text.trim().isEmpty ||
         _typeController.text.trim().isEmpty ||
         _goalController.text.trim().isEmpty ||
         _locationController.text.trim().isEmpty ||
@@ -92,6 +94,7 @@ class _VolunteerState extends State<Volunteer> {
 
     await FirebaseFirestore.instance.collection('ads').add({
       'uid': uid,
+      'supporter': _supporterController.text.trim(),
       'initiativeName': _initiativeController.text.trim(),
       'initiativeType': _typeController.text.trim(),
       'initiativeGoal': _goalController.text.trim(),
@@ -150,6 +153,11 @@ class _VolunteerState extends State<Volunteer> {
                 child: ListView(
                   padding: const EdgeInsets.only(bottom: 20),
                   children: [
+                    Customvolunteer(
+                      nametxt: "اسم الجمعية",
+                      controller: _supporterController,
+                    ),
+
                     Customvolunteer(
                       nametxt: "اسم المبادرة",
                       controller: _initiativeController,
