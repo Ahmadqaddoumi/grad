@@ -5,6 +5,7 @@ class Agsam extends StatefulWidget {
   String title;
   IconData icon;
   VoidCallback onchange;
+
   Agsam({
     super.key,
     required this.title,
@@ -20,10 +21,10 @@ class _AgsamState extends State<Agsam> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {}, // Handle tap event
+      onTap: widget.onchange, // ✅ هنا التعديل
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF68316D), // اللون البنفسجي
+          color: const Color(0xFF68316D),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(

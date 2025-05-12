@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:test_app/aqsam/addelement.dart/specifed.dart/questionsforall.dart/customshape.dart';
@@ -6,13 +8,18 @@ import 'package:test_app/aqsam/addelement.dart/specifed.dart/questionsforall.dar
 // ignore: must_be_immutable
 class Secondpage extends StatefulWidget {
   List<Question> questionssecond;
+  final Map<String, String> answersFirstPage;
   final String nameqesem3;
   final IconData icon1;
+  final String initiativeName;
+
   Secondpage({
     super.key,
     required this.questionssecond,
+    required this.answersFirstPage,
     required this.nameqesem3,
     required this.icon1,
+    required this.initiativeName,
   });
 
   @override
@@ -21,6 +28,7 @@ class Secondpage extends StatefulWidget {
 
 class _SecondpageState extends State<Secondpage> {
   final TextEditingController _loctionController = TextEditingController();
+  final TextEditingController _noteController = TextEditingController();
   DateTime? selectedDate;
   String formattedDate = 'اختر تاريخ النشاط';
 
@@ -43,9 +51,7 @@ class _SecondpageState extends State<Secondpage> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-      },
+      onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(
           actions: [
@@ -83,7 +89,6 @@ class _SecondpageState extends State<Secondpage> {
                     if (index == 0) {
                       return Column(
                         children: [
-                          // حقل الموقع
                           Padding(
                             padding: const EdgeInsets.only(
                               left: 60,
@@ -93,10 +98,8 @@ class _SecondpageState extends State<Secondpage> {
                             ),
                             child: TextField(
                               controller: _loctionController,
-
                               decoration: const InputDecoration(
                                 hintText: "ما هو موقع النشاط",
-
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
                                     color: Colors.black,
@@ -112,8 +115,6 @@ class _SecondpageState extends State<Secondpage> {
                               ),
                             ),
                           ),
-
-                          // اختيار التاريخ
                           Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 20,
@@ -146,12 +147,14 @@ class _SecondpageState extends State<Secondpage> {
                         question1: widget.questionssecond[index - 1],
                       );
                     } else if (index == widget.questionssecond.length + 1) {
-                      return const Padding(
-                        padding: EdgeInsets.all(20),
+                      return Padding(
+                        padding: const EdgeInsets.all(20),
                         child: TextField(
-                          decoration: InputDecoration(
+                          controller: _noteController,
+                          minLines: 1,
+                          maxLines: 4,
+                          decoration: const InputDecoration(
                             hintText: "ملاحظات",
-
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
                                 color: Colors.black,
@@ -171,8 +174,60 @@ class _SecondpageState extends State<Secondpage> {
                       return Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: ElevatedButton(
-                          onPressed: () {
-                            // يمكنك استخدام selectedDate هنا
+                          onPressed: () async {
+                            final location = _loctionController.text.trim();
+                            final note = _noteController.text.trim();
+                            final selectedAnswers = <String, String>{};
+
+                            for (var q in widget.questionssecond) {
+                              if (q.selectedOption != null) {
+                                selectedAnswers[q.questionText] =
+                                    q.selectedOption!;
+                              }
+                            }
+
+                            final uid = FirebaseAuth.instance.currentUser?.uid;
+
+                            if (uid == null ||
+                                location.isEmpty ||
+                                selectedDate == null ||
+                                note.isEmpty ||
+                                selectedAnswers.length !=
+                                    widget.questionssecond.length ||
+                                widget.answersFirstPage.length !=
+                                    widget.answersFirstPage.keys.length) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'يرجى تعبئة جميع الحقول بشكل كامل',
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+
+                            await FirebaseFirestore.instance
+                                .collection('ads')
+                                .add({
+                                  'uid': uid,
+                                  'category': widget.nameqesem3,
+                                  'subCategory': widget.icon1.codePoint,
+                                  'initiativeName': widget.initiativeName,
+                                  'location': location,
+                                  'note': note,
+                                  'date': selectedDate,
+                                  'answersFirstPage': widget.answersFirstPage,
+                                  'answersSecondPage': selectedAnswers,
+                                  'timestamp': Timestamp.now(),
+                                });
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('تم نشر الإعلان بنجاح'),
+                              ),
+                            );
+
+                            Navigator.pop(context);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF68316D),

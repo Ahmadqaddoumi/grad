@@ -4,11 +4,12 @@ import 'package:test_app/aqsam/addelement.dart/specifed.dart/questionsforall.dar
 import 'package:test_app/aqsam/addelement.dart/specifed.dart/questionsforall.dart/classquestion.dart';
 
 // ignore: must_be_immutable
-class Firstpage extends StatelessWidget {
+class Firstpage extends StatefulWidget {
   List<Question> questionsf;
   List<Question> questionsf2;
   final String nameqesem2;
   final IconData icon;
+
   Firstpage({
     super.key,
     required this.questionsf,
@@ -16,25 +17,32 @@ class Firstpage extends StatelessWidget {
     required this.nameqesem2,
     required this.icon,
   });
-  final String buttontext = "التالي";
+
+  @override
+  State<Firstpage> createState() => _FirstpageState();
+}
+
+class _FirstpageState extends State<Firstpage> {
+  final TextEditingController _initiativeController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Expanded(
       child: ListView.builder(
-        itemCount: questionsf.length + 2,
+        itemCount: widget.questionsf.length + 2,
         itemBuilder: (context, index) {
           if (index == 0) {
-            return const Padding(
-              padding: EdgeInsets.only(
+            return Padding(
+              padding: const EdgeInsets.only(
                 left: 60,
                 right: 10,
                 top: 20,
                 bottom: 20,
               ),
               child: TextField(
-                decoration: InputDecoration(
+                controller: _initiativeController,
+                decoration: const InputDecoration(
                   hintText: "اسم المبادرة",
-
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.black, width: 1.5),
                   ),
@@ -44,20 +52,39 @@ class Firstpage extends StatelessWidget {
                 ),
               ),
             );
-          } else if (index <= questionsf.length) {
-            return Customshape(question1: questionsf[index - 1]);
+          } else if (index <= widget.questionsf.length) {
+            return Customshape(question1: widget.questionsf[index - 1]);
           } else {
             return Padding(
               padding: const EdgeInsets.all(16.0),
               child: ElevatedButton(
                 onPressed: () {
+                  final Map<String, String> answersFirstPage = {};
+                  for (var q in widget.questionsf) {
+                    if (q.selectedOption != null) {
+                      answersFirstPage[q.questionText] = q.selectedOption!;
+                    }
+                  }
+
+                  if (_initiativeController.text.trim().isEmpty ||
+                      answersFirstPage.length != widget.questionsf.length) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('يرجى تعبئة جميع الحقول قبل المتابعة'),
+                      ),
+                    );
+                    return;
+                  }
+
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) {
                         return Secondpage(
-                          questionssecond: questionsf2,
-                          nameqesem3: nameqesem2,
-                          icon1: icon,
+                          questionssecond: widget.questionsf2,
+                          nameqesem3: widget.nameqesem2,
+                          icon1: widget.icon,
+                          initiativeName: _initiativeController.text.trim(),
+                          answersFirstPage: answersFirstPage,
                         );
                       },
                     ),
@@ -66,10 +93,9 @@ class Firstpage extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF68316D),
                 ),
-
-                child: Text(
-                  buttontext,
-                  style: const TextStyle(fontSize: 18, color: Colors.white),
+                child: const Text(
+                  "التالي",
+                  style: TextStyle(fontSize: 18, color: Colors.white),
                 ),
               ),
             );
