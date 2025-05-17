@@ -2,11 +2,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_button/sign_in_button.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // استيراد البكج
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_app/home.dart';
+import 'package:test_app/login/regester/admin/adminhomepage.dart';
 import 'package:test_app/login/forgetpass/forgetpass.dart';
 import 'package:test_app/login/regester/regester.dart';
 import 'package:test_app/login/regester/regesterwithgoogle.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LogInPage extends StatefulWidget {
   const LogInPage({super.key});
@@ -24,10 +26,9 @@ class _LogInPageState extends State<LogInPage> {
   @override
   void initState() {
     super.initState();
-    _loadLoginData(); // تحميل البيانات المحفوظة
+    _loadLoginData();
   }
 
-  // حفظ البيانات
   Future<void> _saveLoginData() async {
     final prefs = await SharedPreferences.getInstance();
     if (booleanValue) {
@@ -39,7 +40,6 @@ class _LogInPageState extends State<LogInPage> {
     }
   }
 
-  // تحميل البيانات
   Future<void> _loadLoginData() async {
     final prefs = await SharedPreferences.getInstance();
     final savedEmail = prefs.getString('saved_email');
@@ -73,15 +73,50 @@ class _LogInPageState extends State<LogInPage> {
         password: password,
       );
 
-      await _saveLoginData(); // حفظ البيانات بعد تسجيل الدخول
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      final userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final data = userDoc.data();
+
+      if (data != null && data['isActive'] == false) {
+        await FirebaseAuth.instance.signOut(); // تسجيل خروج فوري
+
+        showDialog(
+          context: context,
+          builder:
+              (_) => AlertDialog(
+                title: const Text("⚠️ الحساب موقوف"),
+                content: const Text(
+                  "تم تعطيل حسابك من قبل الإدارة.\nيرجى مراجعة الدعم عبر: admin@ehsan.org",
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("موافق"),
+                  ),
+                ],
+              ),
+        );
+        return;
+      }
+
+      await _saveLoginData();
+
+      final accountType = data?['accountType'];
+
+      if (accountType == 'Admin') {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AdminHomePage()),
+        );
+      } else {
+        Navigator.of(
+          context,
+        ).pushReplacement(MaterialPageRoute(builder: (_) => const Home()));
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تم تسجيل الدخول بنجاح! 🎉')),
       );
-
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (context) => const Home()));
     } catch (e) {
       ScaffoldMessenger.of(
         context,
@@ -377,9 +412,7 @@ class _LogInPageState extends State<LogInPage> {
                                   child: SignInButton(
                                     Buttons.google,
                                     text: "Sign in with Google",
-                                    onPressed: () {
-                                      signInWithGoogle(context);
-                                    },
+                                    onPressed: () => signInWithGoogle(context),
                                   ),
                                 ),
                               ],

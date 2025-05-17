@@ -94,6 +94,7 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
         'email': email,
         'accountType': 'Charity',
         'serialNumber': serialNumber,
+        'isActive': true, // ✅ تم تفعيل الحساب تلقائيًا
       });
 
       ScaffoldMessenger.of(

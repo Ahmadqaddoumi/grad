@@ -95,6 +95,7 @@ class _CreateNewAccountState extends State<CreateNewAccount> {
         'username': username,
         'email': email,
         'accountType': 'Volunteer', // مهم نفرق انه متطوع
+        'isActive': true, // ✅ تم تفعيل الحساب تلقائيًا
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
