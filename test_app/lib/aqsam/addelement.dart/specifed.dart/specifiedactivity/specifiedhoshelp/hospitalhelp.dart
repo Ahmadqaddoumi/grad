@@ -107,7 +107,7 @@ class Hospitalhelp extends StatelessWidget {
                   width: MediaQuery.of(context).size.width,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF68316D), // اللون البنفسجي
+                    color: const Color(0xFF68316D),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Padding(

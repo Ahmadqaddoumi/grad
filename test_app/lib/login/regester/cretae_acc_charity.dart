@@ -1,5 +1,3 @@
-// 🔐 CreateAccCharity.dart (محسن)
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -94,7 +92,7 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
         'email': email,
         'accountType': 'Charity',
         'serialNumber': serialNumber,
-        'isActive': true, // ✅ تم تفعيل الحساب تلقائيًا
+        'isActive': true,
       });
 
       ScaffoldMessenger.of(

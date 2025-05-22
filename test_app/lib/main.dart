@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:test_app/login/login.dart'; // تأكد من أن الملف موجود والمسار صحيح
+import 'package:test_app/login/login.dart';
 import 'package:test_app/splash.dart';
 
 void main() async {

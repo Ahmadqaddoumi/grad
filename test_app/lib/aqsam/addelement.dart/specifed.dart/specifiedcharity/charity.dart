@@ -11,12 +11,20 @@ class Charity extends StatefulWidget {
 
 class _CharityState extends State<Charity> {
   final TextEditingController _controller = TextEditingController();
-  List<Qesem> charity = [
+
+  List<Qesem> allCharity = [
     Qesem(title: "الدعم المالي والتبرعات النقدية", icon: Icons.attach_money),
     Qesem(title: "التبرعات العينية (ملابس وغذاء..)", icon: Icons.food_bank),
     Qesem(title: "البحث عن متطوعين", icon: Icons.groups),
     Qesem(title: "صيانة وتطوير مقرات الجمعيات", icon: Icons.business_sharp),
   ];
+
+  List<Qesem> get filteredCharity {
+    final query = _controller.text.trim();
+    if (query.isEmpty) return allCharity;
+    return allCharity.where((item) => item.title.contains(query)).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -41,7 +49,6 @@ class _CharityState extends State<Charity> {
                       color: Color(0xffce9dd2),
                       size: 25,
                     ),
-
                     Padding(
                       padding: EdgeInsets.all(10),
                       child: Text(
@@ -59,7 +66,6 @@ class _CharityState extends State<Charity> {
                 padding: const EdgeInsets.all(13),
                 child: TextField(
                   controller: _controller,
-
                   decoration: InputDecoration(
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -81,7 +87,7 @@ class _CharityState extends State<Charity> {
                               },
                             )
                             : const Icon(Icons.search),
-                    hintText: "إبحث في إعلاناتك المفضلة",
+                    hintText: "البحث",
                   ),
                   onChanged: (text) {
                     setState(() {});
@@ -91,9 +97,9 @@ class _CharityState extends State<Charity> {
               const SizedBox(height: 20),
               Expanded(
                 child: ListView.builder(
-                  itemCount: charity.length,
+                  itemCount: filteredCharity.length,
                   itemBuilder: (context, index) {
-                    return Addagsam(qsm1: charity[index]);
+                    return Addagsam(qsm1: filteredCharity[index]);
                   },
                 ),
               ),

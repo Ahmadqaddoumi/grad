@@ -112,15 +112,29 @@ class _ProfilePageState extends State<ProfilePage> {
                       showDialog(
                         context: context,
                         builder: (context) {
-                          final passwordController = TextEditingController();
+                          final oldPasswordController = TextEditingController();
+                          final newPasswordController = TextEditingController();
                           return AlertDialog(
                             title: const Text("تغيير كلمة المرور"),
-                            content: TextField(
-                              controller: passwordController,
-                              decoration: const InputDecoration(
-                                hintText: "كلمة المرور الجديدة",
-                              ),
-                              obscureText: true,
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextField(
+                                  controller: oldPasswordController,
+                                  decoration: const InputDecoration(
+                                    hintText: "كلمة المرور الحالية",
+                                  ),
+                                  obscureText: true,
+                                ),
+                                const SizedBox(height: 10),
+                                TextField(
+                                  controller: newPasswordController,
+                                  decoration: const InputDecoration(
+                                    hintText: "كلمة المرور الجديدة",
+                                  ),
+                                  obscureText: true,
+                                ),
+                              ],
                             ),
                             actions: [
                               TextButton(
@@ -132,11 +146,20 @@ class _ProfilePageState extends State<ProfilePage> {
                               TextButton(
                                 child: const Text("تأكيد"),
                                 onPressed: () async {
+                                  final user =
+                                      FirebaseAuth.instance.currentUser;
+                                  final cred = EmailAuthProvider.credential(
+                                    email: user!.email!,
+                                    password: oldPasswordController.text.trim(),
+                                  );
+
                                   try {
-                                    await FirebaseAuth.instance.currentUser!
-                                        .updatePassword(
-                                          passwordController.text.trim(),
-                                        );
+                                    await user.reauthenticateWithCredential(
+                                      cred,
+                                    );
+                                    await user.updatePassword(
+                                      newPasswordController.text.trim(),
+                                    );
                                     Navigator.of(context).pop();
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
@@ -148,7 +171,11 @@ class _ProfilePageState extends State<ProfilePage> {
                                   } catch (e) {
                                     Navigator.of(context).pop();
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text("حدث خطأ: $e")),
+                                      SnackBar(
+                                        content: Text(
+                                          "فشل التحقق أو التحديث: $e",
+                                        ),
+                                      ),
                                     );
                                   }
                                 },
@@ -159,7 +186,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       );
                     }),
                     _buildOption(Icons.settings, "الإعدادات", () {
-                      print("clicked");
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -167,7 +193,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       );
                     }),
-
                     _buildOption(Icons.help_outline, "المساعدة", () {
                       Navigator.push(
                         context,

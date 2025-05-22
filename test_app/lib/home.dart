@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:test_app/aqsam/addelement.dart/add.dart';
 import 'package:test_app/aqsam/chat/chat.dart';
-import 'package:test_app/aqsam/notification/not.dart';
+import 'package:test_app/aqsam/adv/myadv.dart';
 import 'package:test_app/aqsam/profilee/profile.dart';
 import 'package:test_app/homeeee.dart';
 
@@ -65,13 +65,13 @@ class _HomeState extends State<Home> {
 
     final List<Widget> volunteerPages = [
       HomePage(userRole: accountType!),
-      const ChatPage(),
+      const MyChatsPage(),
       const ProfilePage(),
     ];
 
     final List<Widget> charityPages = [
       HomePage(userRole: accountType!),
-      const ChatPage(),
+      const MyChatsPage(),
       const AddPostPage(),
       const NotificationsPage(),
       const ProfilePage(),

@@ -98,7 +98,7 @@ class _AddagsamState extends State<Addagsam> {
               context,
               MaterialPageRoute(
                 builder: (context) {
-                  return const Tree();
+                  return Tree();
                 },
               ),
             );
@@ -107,7 +107,7 @@ class _AddagsamState extends State<Addagsam> {
               context,
               MaterialPageRoute(
                 builder: (context) {
-                  return const Recycling();
+                  return Recycling();
                 },
               ),
             );
@@ -179,7 +179,7 @@ class _AddagsamState extends State<Addagsam> {
           width: MediaQuery.of(context).size.width,
 
           decoration: BoxDecoration(
-            color: const Color(0xFF68316D), // اللون البنفسجي
+            color: const Color(0xFF68316D),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Padding(

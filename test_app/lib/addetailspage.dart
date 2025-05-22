@@ -10,7 +10,6 @@ class AdDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final data = ad.data() as Map<String, dynamic>;
 
-    // دمج الإجابات
     final allAnswers = <String, dynamic>{};
     if (data['answersFirstPage'] != null) {
       allAnswers.addAll(Map<String, dynamic>.from(data['answersFirstPage']));

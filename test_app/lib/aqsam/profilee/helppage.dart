@@ -47,9 +47,7 @@ class HelpPage extends StatelessWidget {
             leading: const Icon(Icons.email, color: Color(0xFF68316D)),
             title: const Text("راسلنا عبر البريد"),
             subtitle: const Text("teamworkk@gmail.com"),
-            onTap: () {
-              // future: open email app (اختياري)
-            },
+            onTap: () {},
           ),
         ],
       ),

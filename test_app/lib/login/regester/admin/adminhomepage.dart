@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:test_app/login/login.dart';
 import 'package:test_app/login/regester/admin/allusers.dart';
 import 'package:test_app/login/regester/admin/userstatespage.dart';
-import 'package:test_app/login/regester/admin/alladsadminpage.dart'; // تأكد من وجود هذا الملف
+import 'package:test_app/login/regester/admin/alladsadminpage.dart';
 
 class AdminHomePage extends StatelessWidget {
   const AdminHomePage({super.key});
@@ -98,11 +98,11 @@ class AdminHomePage extends StatelessWidget {
             title: const Text("تسجيل الخروج"),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () async {
-              await FirebaseAuth.instance.signOut(); // تسجيل الخروج من Firebase
+              await FirebaseAuth.instance.signOut();
 
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const LogInPage()),
-                (route) => false, // حذف جميع الصفحات السابقة
+                (route) => false,
               );
             },
           ),

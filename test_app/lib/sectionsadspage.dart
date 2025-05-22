@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:test_app/addetailspage.dart';
 import 'package:intl/intl.dart';
+import 'package:test_app/aqsam/chat/chatpage2.dart';
 
 class SectionAdsPage extends StatelessWidget {
   final String category;
@@ -192,37 +193,64 @@ class SectionAdsPage extends StatelessWidget {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        FutureBuilder<DocumentSnapshot>(
+                          future: favRef.get(),
+                          builder: (context, snapshot) {
+                            final isFav = snapshot.data?.exists ?? false;
+                            return IconButton(
+                              icon: Icon(
+                                isFav ? Icons.favorite : Icons.favorite_border,
+                                color: Colors.white,
+                              ),
+                              onPressed: () async {
+                                if (!isFav) {
+                                  await favRef.set({
+                                    'adId': adId,
+                                    'timestamp': Timestamp.now(),
+                                  });
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "تمت إضافة الإعلان إلى المفضلة ✅",
+                                      ),
+                                      duration: Duration(seconds: 2),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                } else {
+                                  await favRef.delete();
+                                }
+                              },
+                            );
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.chat, color: Colors.white),
+                          onPressed: () {
+                            final charityId = data['uid'];
+                            final volunteerId =
+                                FirebaseAuth.instance.currentUser!.uid;
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (_) => ChatPage(
+                                      currentUserId: volunteerId,
+                                      otherUserId: charityId,
+                                    ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-              ),
-              FutureBuilder<DocumentSnapshot>(
-                future: favRef.get(),
-                builder: (context, snapshot) {
-                  final isFav = snapshot.data?.exists ?? false;
-                  return IconButton(
-                    icon: Icon(
-                      isFav ? Icons.favorite : Icons.favorite_border,
-                      color: Colors.white,
-                    ),
-                    onPressed: () async {
-                      if (!isFav) {
-                        await favRef.set({
-                          'adId': adId,
-                          'timestamp': Timestamp.now(),
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("تمت إضافة الإعلان إلى المفضلة ✅"),
-                            duration: Duration(seconds: 2),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      } else {
-                        await favRef.delete();
-                      }
-                    },
-                  );
-                },
               ),
             ],
           ),

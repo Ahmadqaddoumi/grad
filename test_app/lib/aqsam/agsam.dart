@@ -21,7 +21,7 @@ class _AgsamState extends State<Agsam> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: widget.onchange, // ✅ هنا التعديل
+      onTap: widget.onchange,
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFF68316D),

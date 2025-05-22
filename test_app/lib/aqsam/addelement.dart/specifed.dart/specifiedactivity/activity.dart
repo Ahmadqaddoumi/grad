@@ -11,7 +11,8 @@ class Activity extends StatefulWidget {
 
 class _ActivityState extends State<Activity> {
   final TextEditingController _controller = TextEditingController();
-  List<Qesem> activity = [
+
+  List<Qesem> allActivities = [
     Qesem(
       title: "تنظيم رحلة ترفيهية للأيتام",
       icon: Icons.sentiment_satisfied_alt,
@@ -19,6 +20,15 @@ class _ActivityState extends State<Activity> {
     Qesem(title: " تنظيم إفطار جماعي في رمضان", icon: Icons.fastfood),
     Qesem(title: "مساعدة كبار السن في الوصول الى المستشفى", icon: Icons.help),
   ];
+
+  List<Qesem> get filteredActivities {
+    final query = _controller.text.trim();
+    if (query.isEmpty) return allActivities;
+    return allActivities
+        .where((activity) => activity.title.contains(query))
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -29,7 +39,6 @@ class _ActivityState extends State<Activity> {
         appBar: AppBar(
           backgroundColor: const Color(0xFF68316D),
           iconTheme: const IconThemeData(color: Colors.white),
-          
         ),
         body: SafeArea(
           child: Column(
@@ -44,7 +53,6 @@ class _ActivityState extends State<Activity> {
                       color: Color(0xffce9dd2),
                       size: 25,
                     ),
-
                     Padding(
                       padding: EdgeInsets.all(10),
                       child: Text(
@@ -62,7 +70,6 @@ class _ActivityState extends State<Activity> {
                 padding: const EdgeInsets.all(13),
                 child: TextField(
                   controller: _controller,
-
                   decoration: InputDecoration(
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -84,7 +91,7 @@ class _ActivityState extends State<Activity> {
                               },
                             )
                             : const Icon(Icons.search),
-                    hintText: "إبحث في إعلاناتك المفضلة",
+                    hintText: "البحث",
                   ),
                   onChanged: (text) {
                     setState(() {});
@@ -94,9 +101,9 @@ class _ActivityState extends State<Activity> {
               const SizedBox(height: 20),
               Expanded(
                 child: ListView.builder(
-                  itemCount: activity.length,
+                  itemCount: filteredActivities.length,
                   itemBuilder: (context, index) {
-                    return Addagsam(qsm1: activity[index]);
+                    return Addagsam(qsm1: filteredActivities[index]);
                   },
                 ),
               ),

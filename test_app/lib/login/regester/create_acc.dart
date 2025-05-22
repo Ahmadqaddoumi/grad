@@ -89,13 +89,12 @@ class _CreateNewAccountState extends State<CreateNewAccount> {
 
       final uid = userCredential.user!.uid;
 
-      // حفظ معلومات المتطوع في Firestore
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'uid': uid,
         'username': username,
         'email': email,
-        'accountType': 'Volunteer', // مهم نفرق انه متطوع
-        'isActive': true, // ✅ تم تفعيل الحساب تلقائيًا
+        'accountType': 'Volunteer',
+        'isActive': true,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(

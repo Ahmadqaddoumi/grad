@@ -47,7 +47,7 @@ class SettingsPage extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 2,
       child: ListTile(
-        leading: Icon(icon, color: Color(0xFF68316D)),
+        leading: Icon(icon, color: const Color(0xFF68316D)),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
         onTap: () {
@@ -125,16 +125,13 @@ class SettingsPage extends StatelessWidget {
                             );
                             await user.reauthenticateWithCredential(cred);
 
-                            // احذف من Firestore أولاً
                             await FirebaseFirestore.instance
                                 .collection('users')
                                 .doc(user.uid)
                                 .delete();
 
                             if (context.mounted) {
-                              Navigator.of(
-                                context,
-                              ).pop(); // أغلق حوار كلمة المرور
+                              Navigator.of(context).pop();
 
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -146,7 +143,6 @@ class SettingsPage extends StatelessWidget {
 
                               await Future.delayed(const Duration(seconds: 2));
 
-                              // بعد الـ Snackbar نحذف الحساب
                               await user.delete();
 
                               if (context.mounted) {

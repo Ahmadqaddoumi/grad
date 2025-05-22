@@ -75,18 +75,83 @@ class _ChooseAccountTypeAfterGoogleState
                       elevation: 5,
                     ),
                     onPressed: () async {
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(widget.uid)
-                          .set({
-                            'uid': widget.uid,
-                            'username':
-                                FirebaseAuth.instance.currentUser!.displayName,
-                            'email': FirebaseAuth.instance.currentUser!.email,
-                            'accountType': 'Charity', // منظمة
-                          });
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (context) => const Home()),
+                      TextEditingController serialController =
+                          TextEditingController();
+
+                      await showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text(
+                              "الرجاء إدخال الرقم التسلسلي للمنظمة",
+                            ),
+                            content: TextField(
+                              controller: serialController,
+                              decoration: const InputDecoration(
+                                hintText: "أدخل الرقم التسلسلي هنا",
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text("إلغاء"),
+                              ),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  String serial = serialController.text.trim();
+
+                                  if (serial.isNotEmpty) {
+                                    DocumentSnapshot serialDoc =
+                                        await FirebaseFirestore.instance
+                                            .collection('serial_numbers')
+                                            .doc(serial)
+                                            .get();
+
+                                    if (serialDoc.exists) {
+                                      await FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(widget.uid)
+                                          .set({
+                                            'uid': widget.uid,
+                                            'username':
+                                                FirebaseAuth
+                                                    .instance
+                                                    .currentUser!
+                                                    .displayName,
+                                            'email':
+                                                FirebaseAuth
+                                                    .instance
+                                                    .currentUser!
+                                                    .email,
+                                            'accountType': 'Charity',
+                                            'serialNumber': serial,
+                                          });
+
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pushReplacement(
+                                        MaterialPageRoute(
+                                          builder: (context) => const Home(),
+                                        ),
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'الرقم التسلسلي غير صحيح أو غير موجود',
+                                          ),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                                child: const Text("تأكيد"),
+                              ),
+                            ],
+                          );
+                        },
                       );
                     },
                     child: const Text(
@@ -117,8 +182,9 @@ class _ChooseAccountTypeAfterGoogleState
                             'username':
                                 FirebaseAuth.instance.currentUser!.displayName,
                             'email': FirebaseAuth.instance.currentUser!.email,
-                            'accountType': 'Volunteer', // متطوع
+                            'accountType': 'Volunteer',
                           });
+
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (context) => const Home()),
                       );

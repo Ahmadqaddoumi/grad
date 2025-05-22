@@ -12,7 +12,7 @@ class AddPostPage extends StatefulWidget {
 class _AddPostPageState extends State<AddPostPage> {
   final TextEditingController _controller = TextEditingController();
 
-  List<Qesem> qsm = [
+  List<Qesem> allSections = [
     Qesem(title: "احتياجات الجمعيات", icon: Icons.business_sharp),
     Qesem(title: "بيئي", icon: Icons.spa),
     Qesem(
@@ -21,6 +21,14 @@ class _AddPostPageState extends State<AddPostPage> {
     ),
     Qesem(title: "فرص تطوعية عامة", icon: Icons.handshake),
   ];
+
+  List<Qesem> get filteredSections {
+    final query = _controller.text.trim();
+    if (query.isEmpty) return allSections;
+    return allSections
+        .where((section) => section.title.contains(query))
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +59,6 @@ class _AddPostPageState extends State<AddPostPage> {
                 padding: const EdgeInsets.all(13),
                 child: TextField(
                   controller: _controller,
-
                   decoration: InputDecoration(
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -73,7 +80,7 @@ class _AddPostPageState extends State<AddPostPage> {
                               },
                             )
                             : const Icon(Icons.search),
-                    hintText: "إبحث في إعلاناتك المفضلة",
+                    hintText: "البحث",
                   ),
                   onChanged: (text) {
                     setState(() {});
@@ -83,9 +90,9 @@ class _AddPostPageState extends State<AddPostPage> {
               const SizedBox(height: 30),
               Expanded(
                 child: ListView.builder(
-                  itemCount: qsm.length,
+                  itemCount: filteredSections.length,
                   itemBuilder: (context, index) {
-                    return Addagsam(qsm1: qsm[index]);
+                    return Addagsam(qsm1: filteredSections[index]);
                   },
                 ),
               ),

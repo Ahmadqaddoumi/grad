@@ -77,7 +77,6 @@ class _AllAdsAdminPageState extends State<AllAdsAdminPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header Row
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -152,7 +151,6 @@ class _AllAdsAdminPageState extends State<AllAdsAdminPage> {
                           ],
                         ),
 
-                        // Expandable Section
                         if (expanded[index]) ...[
                           const Divider(),
                           _infoRow("📍 الموقع", location),

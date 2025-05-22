@@ -79,7 +79,7 @@ class _LogInPageState extends State<LogInPage> {
       final data = userDoc.data();
 
       if (data != null && data['isActive'] == false) {
-        await FirebaseAuth.instance.signOut(); // تسجيل خروج فوري
+        await FirebaseAuth.instance.signOut();
 
         showDialog(
           context: context,
@@ -168,54 +168,49 @@ class _LogInPageState extends State<LogInPage> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: const Color(0xff68316d),
-        body: SingleChildScrollView(
-          child: SafeArea(
-            child: Stack(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(18.0),
-                  child: Center(
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.9,
-                      height: MediaQuery.of(context).size.height * 0.9,
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(30)),
-                        color: Color(0xffce9dd2),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: CircleAvatar(
-                                backgroundImage: AssetImage(
-                                  "image/assets/g.jpg",
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(18.0),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Center(
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.9,
+                        decoration: const BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(30)),
+                          color: Color(0xffce9dd2),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: CircleAvatar(
+                                  backgroundImage: AssetImage(
+                                    "image/assets/g.jpg",
+                                  ),
+                                  radius: 100,
+                                  backgroundColor: Colors.transparent,
                                 ),
-                                radius: 100,
-                                backgroundColor: Colors.transparent,
                               ),
-                            ),
-                            const Text(
-                              "إحسان",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 36,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: "ahmad",
+                              const Text(
+                                "إحسان",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: "ahmad",
+                                ),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                bottom: 8.0,
-                                top: 8,
-                              ),
-                              child: TextField(
+                              const SizedBox(height: 16),
+                              TextField(
                                 controller: emailController,
                                 decoration: const InputDecoration(
-                                  filled: false,
                                   prefixIcon: Icon(Icons.person),
                                   hintText: "اسم المستخدم",
                                   enabledBorder: OutlineInputBorder(
@@ -236,20 +231,13 @@ class _LogInPageState extends State<LogInPage> {
                                       color: Color(0xff68316d),
                                     ),
                                   ),
-                                  contentPadding: EdgeInsets.symmetric(
-                                    vertical: 16,
-                                    horizontal: 10,
-                                  ),
                                 ),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: TextField(
+                              const SizedBox(height: 10),
+                              TextField(
                                 controller: passwordController,
                                 obscureText: isObsecure,
                                 decoration: InputDecoration(
-                                  filled: false,
                                   prefixIcon: const Icon(Icons.lock),
                                   suffixIcon: IconButton(
                                     onPressed: () {
@@ -284,14 +272,11 @@ class _LogInPageState extends State<LogInPage> {
                                   ),
                                 ),
                               ),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: GestureDetector(
-                                    onTap: () {
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  TextButton(
+                                    onPressed: () {
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
                                           builder:
@@ -304,141 +289,109 @@ class _LogInPageState extends State<LogInPage> {
                                       "نسيت كلمة السر ؟",
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 17,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ),
-                                ),
-                                const Expanded(child: SizedBox()),
-                                const Text(
-                                  "تذكرني",
-                                  style: TextStyle(
-                                    fontSize: 17,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Checkbox(
-                                  value: booleanValue,
-                                  visualDensity: const VisualDensity(
-                                    horizontal: -4,
-                                    vertical: -4,
-                                  ),
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      booleanValue = value!;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextButton(
-                                    onPressed: signInUser,
-                                    style: const ButtonStyle(
-                                      backgroundColor: WidgetStatePropertyAll(
-                                        Color(0xff68316d),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      "تسجيل الدخول",
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text(
-                                  "مستخدم جديد ؟ ",
-                                  style: TextStyle(fontSize: 18),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) => const Register(),
-                                      ),
-                                    );
-                                  },
-                                  child: const Text(
-                                    " سجل الأن",
+                                  const Spacer(),
+                                  const Text(
+                                    "تذكرني",
                                     style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
+                                  Checkbox(
+                                    value: booleanValue,
+                                    onChanged: (bool? value) {
+                                      setState(() {
+                                        booleanValue = value!;
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
                                 children: [
                                   Expanded(
-                                    child: Container(
-                                      height: 1,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 8.0,
-                                    ),
-                                    child: Text("or"),
-                                  ),
-                                  Expanded(
-                                    child: Container(
-                                      height: 1,
-                                      color: Colors.black,
+                                    child: TextButton(
+                                      onPressed: signInUser,
+                                      style: const ButtonStyle(
+                                        backgroundColor: WidgetStatePropertyAll(
+                                          Color(0xff68316d),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        "تسجيل الدخول",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: SignInButton(
-                                    Buttons.google,
-                                    text: "Sign in with Google",
-                                    onPressed: () => signInWithGoogle(context),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 5),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: SignInButton(
-                                    Buttons.facebookNew,
-                                    text: "Sign in with Facebook",
-                                    onPressed: () {
-                                      // تسجيل الدخول باستخدام الفيسبوك لاحقًا
+                              const SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text("مستخدم جديد ؟ "),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => const Register(),
+                                        ),
+                                      );
                                     },
+                                    child: const Text(
+                                      "سجل الأن",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              const Row(
+                                children: [
+                                  Expanded(child: Divider()),
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                    ),
+                                    child: Text("أو"),
+                                  ),
+                                  Expanded(child: Divider()),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              SignInButton(
+                                Buttons.google,
+
+                                text: "Sign in with Google",
+                                onPressed: () => signInWithGoogle(context),
+                              ),
+                              const SizedBox(height: 8),
+                              SignInButton(
+                                Buttons.facebookNew,
+                                text: "Sign in with Facebook",
+                                onPressed: () {},
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),

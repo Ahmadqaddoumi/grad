@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:test_app/aqsam/addelement.dart/specifed.dart/questionsforall.dart/classquestion.dart';
 import 'package:test_app/aqsam/addelement.dart/specifed.dart/questionsforall.dart/customshape.dart';
 import 'package:test_app/aqsam/addelement.dart/specifed.dart/voulnteer/customvolunteer.dart';
+import 'package:test_app/home.dart';
 
 class Volunteer extends StatefulWidget {
   const Volunteer({super.key});
@@ -112,7 +113,11 @@ class _VolunteerState extends State<Volunteer> {
       context,
     ).showSnackBar(const SnackBar(content: Text("تم نشر الإعلان بنجاح ✅")));
 
-    Navigator.pop(context);
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const Home()),
+      (Route<dynamic> route) => false,
+    );
   }
 
   @override

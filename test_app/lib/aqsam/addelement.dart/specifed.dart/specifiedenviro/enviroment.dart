@@ -11,7 +11,8 @@ class Enviroment extends StatefulWidget {
 
 class _EnviromentState extends State<Enviroment> {
   final TextEditingController _controller = TextEditingController();
-  List<Qesem> env = [
+
+  List<Qesem> allEnv = [
     Qesem(title: "التشجير وإعادة التشجير", icon: Icons.park),
     Qesem(title: "إعادة التدوير وإدارة النفايات", icon: Icons.recycling),
     Qesem(
@@ -19,6 +20,12 @@ class _EnviromentState extends State<Enviroment> {
       icon: Icons.cleaning_services_rounded,
     ),
   ];
+
+  List<Qesem> get filteredEnv {
+    final query = _controller.text.trim();
+    if (query.isEmpty) return allEnv;
+    return allEnv.where((item) => item.title.contains(query)).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +38,6 @@ class _EnviromentState extends State<Enviroment> {
           backgroundColor: const Color(0xFF68316D),
           iconTheme: const IconThemeData(color: Colors.white),
         ),
-
         body: SafeArea(
           child: Column(
             children: [
@@ -41,7 +47,6 @@ class _EnviromentState extends State<Enviroment> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Icon(Icons.spa, color: Color(0xffce9dd2), size: 25),
-
                     Padding(
                       padding: EdgeInsets.all(10),
                       child: Text(
@@ -59,7 +64,6 @@ class _EnviromentState extends State<Enviroment> {
                 padding: const EdgeInsets.all(13),
                 child: TextField(
                   controller: _controller,
-
                   decoration: InputDecoration(
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -81,7 +85,7 @@ class _EnviromentState extends State<Enviroment> {
                               },
                             )
                             : const Icon(Icons.search),
-                    hintText: "إبحث في إعلاناتك المفضلة",
+                    hintText: "البحث",
                   ),
                   onChanged: (text) {
                     setState(() {});
@@ -91,9 +95,9 @@ class _EnviromentState extends State<Enviroment> {
               const SizedBox(height: 20),
               Expanded(
                 child: ListView.builder(
-                  itemCount: env.length,
+                  itemCount: filteredEnv.length,
                   itemBuilder: (context, index) {
-                    return Addagsam(qsm1: env[index]);
+                    return Addagsam(qsm1: filteredEnv[index]);
                   },
                 ),
               ),

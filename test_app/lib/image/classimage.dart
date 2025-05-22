@@ -8,18 +8,18 @@ class Ahmad extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: SizedBox(
-        height: 200, // ارتفاع مناسب للصور
-        width: MediaQuery.of(context).size.width, // العرض يغطي الشاشة
+        height: 200,
+        width: MediaQuery.of(context).size.width,
         child: PageView.builder(
           itemCount: l.length,
           scrollDirection: Axis.horizontal,
           controller: PageController(viewportFraction: 0.9),
-          physics: const BouncingScrollPhysics(), // ✅ السماح بالتمرير
+          physics: const BouncingScrollPhysics(),
           itemBuilder: (context, index) {
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(15), // زوايا دائرية
+                borderRadius: BorderRadius.circular(15),
                 child: Container(
                   width: MediaQuery.of(context).size.width * 0.8,
                   decoration: BoxDecoration(

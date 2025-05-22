@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:test_app/aqsam/addelement.dart/specifed.dart/questionsforall.dart/customshape.dart';
 import 'package:test_app/aqsam/addelement.dart/specifed.dart/questionsforall.dart/classquestion.dart';
+import 'package:test_app/home.dart';
 
 // ignore: must_be_immutable
 class Secondpage extends StatefulWidget {
@@ -230,7 +231,13 @@ class _SecondpageState extends State<Secondpage> {
                               ),
                             );
 
-                            Navigator.pop(context);
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const Home(),
+                              ),
+                              (Route<dynamic> route) => false,
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF68316D),
