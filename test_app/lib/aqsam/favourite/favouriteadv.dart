@@ -47,12 +47,17 @@ class _FavouriteadvState extends State<Favouriteadv> {
                 child: TextField(
                   controller: _controller,
                   decoration: InputDecoration(
+                    border: InputBorder.none,
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: const BorderSide(
                         color: Color(0xFF68316D),
                         width: 2,
                       ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
                     ),
                     fillColor: Colors.grey[200],
                     filled: true,
@@ -110,13 +115,51 @@ class _FavouriteadvState extends State<Favouriteadv> {
                           );
                         }
 
-                        final ads = adSnapshot.data!.docs;
+                        final allAds = adSnapshot.data!.docs;
+
+                        if (allAds.isEmpty) {
+                          // هذه الحالة نحتاجها عندما يتم حذف كل المفضلات من قاعدة البيانات
+                          return const Center(
+                            child: Text(
+                              "لا يوجد لديك أي إعلان مفضل",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          );
+                        }
+
+                        final searchText = _controller.text.toLowerCase();
+                        final filteredAds =
+                            allAds.where((doc) {
+                              final data = doc.data() as Map<String, dynamic>;
+                              final title =
+                                  (data['initiativeName'] ?? '')
+                                      .toString()
+                                      .toLowerCase();
+                              return title.contains(searchText);
+                            }).toList();
+
+                        if (filteredAds.isEmpty) {
+                          return const Center(
+                            child: Text(
+                              "لا يوجد نتائج مطابقة لبحثك",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          );
+                        }
 
                         return ListView.builder(
-                          itemCount: ads.length,
+                          itemCount: filteredAds.length,
                           itemBuilder: (context, index) {
-                            final ad = ads[index];
-                            return buildVolunteerAdCard(context, ad);
+                            return buildVolunteerAdCard(
+                              context,
+                              filteredAds[index],
+                            );
                           },
                         );
                       },

@@ -163,6 +163,13 @@ class _HomePageState extends State<HomePage> {
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide.none,
                   ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF68316D),
+                      width: 2,
+                    ),
+                  ),
                 ),
                 onChanged: (_) => setState(() {}),
               ),
