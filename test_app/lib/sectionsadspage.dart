@@ -170,67 +170,100 @@ class _SectionAdsPageState extends State<SectionAdsPage> {
             ),
           ],
         ),
-        body: StreamBuilder<QuerySnapshot>(
-          stream:
-              FirebaseFirestore.instance
-                  .collection('ads')
-                  .where('category', isEqualTo: widget.category)
-                  .snapshots(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            final allAds = snapshot.data!.docs;
-            final roleFiltered =
-                widget.userRole == "Volunteer"
-                    ? allAds
-                    : allAds.where((doc) => doc['uid'] == uid).toList();
-
-            final filteredAds =
-                roleFiltered.where((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  final subcat = data['subCategory']?.toString() ?? '';
-                  final gov = data['governorate']?.toString() ?? '';
-
-                  final matchSub =
-                      selectedSubcategory == 'الكل' ||
-                      subcat == selectedSubcategory;
-                  final matchGov =
-                      selectedGovernorate == 'الكل' ||
-                      gov == selectedGovernorate;
-
-                  return matchSub && matchGov;
-                }).toList();
-
-            filteredAds.sort((a, b) {
-              final aTime = a['timestamp'];
-              final bTime = b['timestamp'];
-              if (aTime is Timestamp && bTime is Timestamp) {
-                return bTime.compareTo(aTime);
-              }
-              return 0;
-            });
-
-            if (filteredAds.isEmpty) {
-              return const Center(
+        body: Column(
+          children: [
+            if (widget.userRole == 'Charity')
+              Padding(
+                padding: const EdgeInsets.all(12.0),
                 child: Text(
-                  "لا يوجد إعلانات مطابقة",
-                  style: TextStyle(color: Colors.white),
+                  "إعلانات جمعيتك في قسم: ${widget.category}",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              );
-            }
+              ),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream:
+                    FirebaseFirestore.instance
+                        .collection('ads')
+                        .where('category', isEqualTo: widget.category)
+                        .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-            return ListView.builder(
-              itemCount: filteredAds.length,
-              itemBuilder: (context, index) {
-                final ad = filteredAds[index];
-                return widget.userRole == "Volunteer"
-                    ? buildVolunteerAdCard(context, ad)
-                    : buildDefaultAdCard(ad, context);
-              },
-            );
-          },
+                  final allAds = snapshot.data!.docs;
+                  final roleFiltered =
+                      widget.userRole == "Volunteer"
+                          ? allAds
+                          : allAds.where((doc) => doc['uid'] == uid).toList();
+
+                  final filteredAds =
+                      roleFiltered.where((doc) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        final subcat = data['subCategory']?.toString() ?? '';
+                        final gov = data['governorate']?.toString() ?? '';
+
+                        final matchSub =
+                            selectedSubcategory == 'الكل' ||
+                            subcat == selectedSubcategory;
+                        final matchGov =
+                            selectedGovernorate == 'الكل' ||
+                            gov == selectedGovernorate;
+
+                        return matchSub && matchGov;
+                      }).toList();
+
+                  filteredAds.sort((a, b) {
+                    final aTime = a['timestamp'];
+                    final bTime = b['timestamp'];
+                    if (aTime is Timestamp && bTime is Timestamp) {
+                      return bTime.compareTo(aTime);
+                    }
+                    return 0;
+                  });
+
+                  if (roleFiltered.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        "لا يوجد إعلانات",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                    );
+                  } else if (filteredAds.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        "لا يوجد إعلانات مطابقة",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    itemCount: filteredAds.length,
+                    itemBuilder: (context, index) {
+                      final ad = filteredAds[index];
+                      return widget.userRole == "Volunteer"
+                          ? buildVolunteerAdCard(context, ad)
+                          : buildDefaultAdCard(ad, context);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

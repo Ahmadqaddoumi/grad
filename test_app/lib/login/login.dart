@@ -441,18 +441,6 @@ class _LogInPageState extends State<LogInPage> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 5),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: SignInButton(
-                                      Buttons.facebookNew,
-                                      text: "Sign in with Facebook",
-                                      onPressed: () {},
-                                    ),
-                                  ),
-                                ],
-                              ),
                             ],
                           ),
                         ),

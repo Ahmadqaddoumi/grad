@@ -59,7 +59,7 @@ class _ActivityState extends State<Activity> {
                         "الفعاليات والمساعدات الاجتماعية",
                         style: TextStyle(
                           color: Color(0xffce9dd2),
-                          fontSize: 25,
+                          fontSize: 20,
                         ),
                       ),
                     ),
