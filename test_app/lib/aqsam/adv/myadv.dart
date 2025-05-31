@@ -13,9 +13,36 @@ class NotificationsPage extends StatefulWidget {
 class _NotificationsPageState extends State<NotificationsPage> {
   final uid = FirebaseAuth.instance.currentUser!.uid;
   final Map<String, bool> expandedCards = {};
+  String? supporterUsername;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchSupporterUsername();
+  }
+
+  Future<void> fetchSupporterUsername() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .get();
+      if (doc.exists) {
+        setState(() {
+          supporterUsername = doc.data()?['username'] ?? 'غير محدد';
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (supporterUsername == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -49,18 +76,21 @@ class _NotificationsPageState extends State<NotificationsPage> {
               final ad = ads[index];
               final docId = ad.id;
               final name = ad['initiativeName'] ?? 'بدون اسم';
-              final location = ad['location'] ?? 'بدون موقع';
+              final governorate =
+                  ad.data().toString().contains('governorate')
+                      ? ad['governorate']
+                      : 'غير محددة';
               final note = ad['note'] ?? 'لا توجد ملاحظات';
               final date = (ad['date'] as Timestamp?)?.toDate();
-              final supporter =
-                  ad.data().toString().contains('supporter') &&
-                          ad['supporter'] != null
-                      ? ad['supporter'].toString()
-                      : 'غير محدد';
               final answers1 =
                   ad['answersFirstPage'] as Map<String, dynamic>? ?? {};
               final answers2 =
                   ad['answersSecondPage'] as Map<String, dynamic>? ?? {};
+              final imageUrls =
+                  ad.data().toString().contains('imageUrls')
+                      ? List<String>.from(ad['imageUrls'])
+                      : [];
+
               final isExpanded = expandedCards[docId] ?? false;
 
               return Card(
@@ -175,8 +205,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           ],
                         ),
                         const SizedBox(height: 6),
-                        Text('📍 الموقع: $location'),
-                        Text('🏛️ الجهة الداعمة: $supporter'),
+                        Text('🏛 الجهة الداعمة: $supporterUsername'),
+                        Text('🏙 المحافظة: $governorate'),
+                        if (ad['category'] == 'فرص تطوعية عامة')
+                          Text(
+                            '📌 نوع المبادرة: ${ad['initiativeType'] ?? "غير محددة"}',
+                          ),
                         Text(
                           '📅 التاريخ: ${date != null ? "${date.day}/${date.month}/${date.year}" : "غير محدد"}',
                         ),
@@ -215,6 +249,44 @@ class _NotificationsPageState extends State<NotificationsPage> {
                               ),
                             ),
                           ),
+                          if (imageUrls.isNotEmpty) ...[
+                            const SizedBox(height: 10),
+                            const Text(
+                              '🖼 صور الإعلان:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Color(0xff68316d),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            SizedBox(
+                              height: 120,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: imageUrls.length,
+                                itemBuilder: (context, imgIndex) {
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Image.network(
+                                        imageUrls[imgIndex],
+                                        width: 100,
+                                        height: 100,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                const Icon(Icons.broken_image),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ],
                       ],
                     ),

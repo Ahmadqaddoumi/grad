@@ -5,7 +5,7 @@ import 'package:test_app/addetailspage.dart';
 import 'package:intl/intl.dart';
 import 'package:test_app/aqsam/chat/chatpage2.dart';
 
-class SectionAdsPage extends StatelessWidget {
+class SectionAdsPage extends StatefulWidget {
   final String category;
   final String userRole;
 
@@ -14,6 +14,135 @@ class SectionAdsPage extends StatelessWidget {
     required this.category,
     required this.userRole,
   });
+
+  @override
+  State<SectionAdsPage> createState() => _SectionAdsPageState();
+}
+
+class _SectionAdsPageState extends State<SectionAdsPage> {
+  String selectedGovernorate = 'الكل';
+  String selectedSubcategory = 'الكل';
+
+  final List<String> governorates = [
+    'الكل',
+    'عمان',
+    'الزرقاء',
+    'إربد',
+    'العقبة',
+    'البلقاء',
+    'المفرق',
+    'جرش',
+    'الطفيلة',
+    'الكرك',
+    'معان',
+    'مأدبا',
+    'عجلون',
+  ];
+
+  final Map<String, List<String>> categorySubcategories = {
+    'احتياجات الجمعيات': [
+      'الكل',
+      'الدعم المالي والتبرعات النقدية',
+      'التبرعات العينية (ملابس وغذاء..)',
+      'البحث عن متطوعين',
+      'صيانة وتطوير مقرات الجمعيات',
+    ],
+    'بيئي': [
+      'الكل',
+      'التشجير وإعادة التشجير',
+      "إعادة التدوير وإدارة النفايات",
+      "حملات تنظيف الأماكن العامة",
+    ],
+    'الفعاليات و المساعدات الاجتماعية': [
+      "تنظيم رحلة ترفيهية للأيتام",
+      " تنظيم إفطار جماعي في رمضان",
+      "مساعدة كبار السن في الوصول الى المستشفى",
+      "الفعاليات والمساعدات الاجتماعية",
+    ],
+  };
+
+  Future<String> getUsernameFromUid(String uid) async {
+    final doc =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    return doc.exists ? (doc.data()?['username'] ?? 'غير محددة') : 'غير محددة';
+  }
+
+  void openFilterDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1C1B2F),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        final subcategories =
+            categorySubcategories[widget.category] ?? ['الكل'];
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'اختر المحافظة:',
+                style: TextStyle(color: Colors.white),
+              ),
+              DropdownButton<String>(
+                value: selectedGovernorate,
+                dropdownColor: const Color(0xFF2C2C3E),
+                iconEnabledColor: Colors.white,
+                isExpanded: true,
+                items:
+                    governorates
+                        .map(
+                          (g) => DropdownMenuItem(
+                            value: g,
+                            child: Text(
+                              g,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                onChanged: (val) => setState(() => selectedGovernorate = val!),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'اختر التصنيف الفرعي:',
+                style: TextStyle(color: Colors.white),
+              ),
+              DropdownButton<String>(
+                value: selectedSubcategory,
+                dropdownColor: const Color(0xFF2C2C3E),
+                iconEnabledColor: Colors.white,
+                isExpanded: true,
+                items:
+                    subcategories
+                        .map(
+                          (s) => DropdownMenuItem(
+                            value: s,
+                            child: Text(
+                              s,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                onChanged: (val) => setState(() => selectedSubcategory = val!),
+              ),
+              const SizedBox(height: 12),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('تطبيق الفلاتر'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +155,7 @@ class SectionAdsPage extends StatelessWidget {
           backgroundColor: const Color(0xFF68316D),
           iconTheme: const IconThemeData(color: Colors.white),
           title: Text(
-            category,
+            widget.category,
             style: const TextStyle(
               fontSize: 20,
               color: Colors.white,
@@ -34,12 +163,18 @@ class SectionAdsPage extends StatelessWidget {
             ),
           ),
           centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.filter_list),
+              onPressed: openFilterDialog,
+            ),
+          ],
         ),
         body: StreamBuilder<QuerySnapshot>(
           stream:
               FirebaseFirestore.instance
                   .collection('ads')
-                  .where('category', isEqualTo: category)
+                  .where('category', isEqualTo: widget.category)
                   .snapshots(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
@@ -47,10 +182,26 @@ class SectionAdsPage extends StatelessWidget {
             }
 
             final allAds = snapshot.data!.docs;
-            final filteredAds =
-                userRole == "Volunteer"
+            final roleFiltered =
+                widget.userRole == "Volunteer"
                     ? allAds
                     : allAds.where((doc) => doc['uid'] == uid).toList();
+
+            final filteredAds =
+                roleFiltered.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final subcat = data['subCategory']?.toString() ?? '';
+                  final gov = data['governorate']?.toString() ?? '';
+
+                  final matchSub =
+                      selectedSubcategory == 'الكل' ||
+                      subcat == selectedSubcategory;
+                  final matchGov =
+                      selectedGovernorate == 'الكل' ||
+                      gov == selectedGovernorate;
+
+                  return matchSub && matchGov;
+                }).toList();
 
             filteredAds.sort((a, b) {
               final aTime = a['timestamp'];
@@ -64,39 +215,20 @@ class SectionAdsPage extends StatelessWidget {
             if (filteredAds.isEmpty) {
               return const Center(
                 child: Text(
-                  "لا يوجد إعلانات في هذا القسم",
+                  "لا يوجد إعلانات مطابقة",
                   style: TextStyle(color: Colors.white),
                 ),
               );
             }
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (userRole == "Charity")
-                  Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Text(
-                      "إعلانات جمعيتك في قسم: $category",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: filteredAds.length,
-                    itemBuilder: (context, index) {
-                      final ad = filteredAds[index];
-                      return userRole == "Volunteer"
-                          ? buildVolunteerAdCard(context, ad)
-                          : buildDefaultAdCard(ad, context);
-                    },
-                  ),
-                ),
-              ],
+            return ListView.builder(
+              itemCount: filteredAds.length,
+              itemBuilder: (context, index) {
+                final ad = filteredAds[index];
+                return widget.userRole == "Volunteer"
+                    ? buildVolunteerAdCard(context, ad)
+                    : buildDefaultAdCard(ad, context);
+              },
             );
           },
         ),
@@ -130,9 +262,23 @@ class SectionAdsPage extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 30,
-                backgroundImage: AssetImage("assets/default_logo.png"),
+                backgroundColor: const Color(0xFF68316D),
+                backgroundImage:
+                    (data['profileImage'] != null &&
+                            data['profileImage'].toString().isNotEmpty)
+                        ? NetworkImage(data['profileImage'])
+                        : null,
+                child:
+                    (data['profileImage'] == null ||
+                            data['profileImage'].toString().isEmpty)
+                        ? const Icon(
+                          Icons.apartment,
+                          color: Colors.white,
+                          size: 30,
+                        )
+                        : null,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -148,16 +294,51 @@ class SectionAdsPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 5),
-                    Text(
-                      data.containsKey('supporter') && data['supporter'] != null
-                          ? data['supporter'].toString()
-                          : "جهة غير معروفة",
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white60,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    FutureBuilder<String>(
+                      future: getUsernameFromUid(data['uid']),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Row(
+                            children: [
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                "جاري تحميل الجهة الداعمة...",
+                                style: TextStyle(color: Colors.white60),
+                              ),
+                            ],
+                          );
+                        }
+                        final supporter = snapshot.data ?? 'غير محددة';
+                        return Text(
+                          "🏛 الجهة الداعمة: $supporter",
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.white60,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        );
+                      },
                     ),
+                    const SizedBox(height: 5),
+                    Text(
+                      data['governorate'] != null
+                          ? "📍 الموقع: ${data['governorate']}"
+                          : "📍 الموقع: غير محدد",
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    if (data['category'] == 'فرص تطوعية عامة')
+                      Text(
+                        "📌 نوع المبادرة: ${data['initiativeType'] ?? "غير محددة"}",
+                        style: const TextStyle(color: Colors.white70),
+                      ),
                     const SizedBox(height: 5),
                     Row(
                       children: [
@@ -234,7 +415,6 @@ class SectionAdsPage extends StatelessWidget {
                             final charityId = data['uid'];
                             final volunteerId =
                                 FirebaseAuth.instance.currentUser!.uid;
-
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -260,6 +440,7 @@ class SectionAdsPage extends StatelessWidget {
   }
 
   Widget buildDefaultAdCard(DocumentSnapshot ad, BuildContext context) {
+    final data = ad.data() as Map<String, dynamic>;
     return Card(
       margin: const EdgeInsets.all(10),
       color: const Color(0xFF2E3A59),
@@ -268,21 +449,52 @@ class SectionAdsPage extends StatelessWidget {
       elevation: 5,
       child: ListTile(
         title: Text(
-          ad['initiativeName'] ?? 'بدون اسم',
+          data['initiativeName'] ?? 'بدون اسم',
           style: const TextStyle(color: Colors.white),
         ),
-        subtitle: Text(
-          ad.data().toString().contains('supporter') && ad['supporter'] != null
-              ? ad['supporter'].toString()
-              : 'جهة غير معروفة',
-          style: const TextStyle(color: Colors.white70, fontSize: 12),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FutureBuilder<String>(
+              future: getUsernameFromUid(data['uid']),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 4),
+                    child: SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  );
+                }
+                final supporter = snapshot.data ?? 'غير محددة';
+                return Text(
+                  "🏛 الجهة الداعمة: $supporter",
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                );
+              },
+            ),
+            const SizedBox(height: 4),
+            Text(
+              data['governorate'] != null
+                  ? "📍 الموقع: ${data['governorate']}"
+                  : "📍 الموقع: غير محدد",
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+            if (data['category'] == 'فرص تطوعية عامة')
+              Text(
+                "📌 نوع المبادرة: ${data['initiativeType'] ?? "غير محددة"}",
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+          ],
         ),
         trailing: Text(
-          (ad['date'] as Timestamp?) != null
+          (data['date'] as Timestamp?) != null
               ? DateFormat(
                 'yyyy-MM-dd',
-              ).format((ad['date'] as Timestamp).toDate())
-              : "",
+              ).format((data['date'] as Timestamp).toDate())
+              : '',
           style: const TextStyle(color: Colors.white, fontSize: 13),
         ),
         onTap: () {

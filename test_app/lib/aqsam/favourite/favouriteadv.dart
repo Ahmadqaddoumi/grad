@@ -20,6 +20,7 @@ class _FavouriteadvState extends State<Favouriteadv> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
+        backgroundColor: const Color(0xFF1C1B2F),
         appBar: AppBar(
           iconTheme: const IconThemeData(color: Colors.white),
           backgroundColor: const Color(0xFF68316D),
@@ -37,6 +38,7 @@ class _FavouriteadvState extends State<Favouriteadv> {
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -93,8 +95,9 @@ class _FavouriteadvState extends State<Favouriteadv> {
                         child: Text(
                           "لا يوجد لديك أي إعلان مفضل",
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 20,
                             fontWeight: FontWeight.w500,
+                            color: Colors.white,
                           ),
                         ),
                       );
@@ -118,13 +121,13 @@ class _FavouriteadvState extends State<Favouriteadv> {
                         final allAds = adSnapshot.data!.docs;
 
                         if (allAds.isEmpty) {
-                          // هذه الحالة نحتاجها عندما يتم حذف كل المفضلات من قاعدة البيانات
                           return const Center(
                             child: Text(
                               "لا يوجد لديك أي إعلان مفضل",
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
+                                color: Colors.white,
                               ),
                             ),
                           );
@@ -148,6 +151,7 @@ class _FavouriteadvState extends State<Favouriteadv> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
+                                color: Colors.white,
                               ),
                             ),
                           );
@@ -200,9 +204,23 @@ class _FavouriteadvState extends State<Favouriteadv> {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 30,
-                backgroundImage: AssetImage("assets/default_logo.png"),
+                backgroundColor: const Color(0xFF68316D),
+                backgroundImage:
+                    (data['profileImage'] != null &&
+                            data['profileImage'].toString().isNotEmpty)
+                        ? NetworkImage(data['profileImage'])
+                        : null,
+                child:
+                    (data['profileImage'] == null ||
+                            data['profileImage'].toString().isEmpty)
+                        ? const Icon(
+                          Icons.apartment,
+                          color: Colors.white,
+                          size: 30,
+                        )
+                        : null,
               ),
               const SizedBox(width: 12),
               Expanded(

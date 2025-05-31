@@ -78,7 +78,7 @@ class Hospitalhelp extends StatelessWidget {
                 children: [
                   Text(
                     "الفعاليات والمساعدات الإجتماعية",
-                    style: TextStyle(color: Color(0xffce9dd2), fontSize: 25),
+                    style: TextStyle(color: Color(0xffce9dd2), fontSize: 20),
                   ),
                   Padding(
                     padding: EdgeInsets.all(10),
@@ -134,6 +134,7 @@ class Hospitalhelp extends StatelessWidget {
                 questionsf2: medicalHelpQuestions2,
                 nameqesem2: "الفعاليات والمساعدات الإجتماعية",
                 icon: Icons.volunteer_activism,
+                nameqesem4: "مساعدة كبار السن في الوصول الى المستشفى",
               ),
             ],
           ),

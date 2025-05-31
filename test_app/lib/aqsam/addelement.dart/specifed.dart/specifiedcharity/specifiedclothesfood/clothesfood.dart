@@ -136,6 +136,7 @@ class Clothesfood extends StatelessWidget {
                 questionsf2: donationItemsQuestions2,
                 nameqesem2: "احتياجات الجمعيات",
                 icon: Icons.business_sharp,
+                nameqesem4: 'التبرعات العينية (ملابس وغذاء..)',
               ),
             ],
           ),

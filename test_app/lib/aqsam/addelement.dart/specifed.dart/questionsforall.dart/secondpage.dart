@@ -6,23 +6,26 @@ import 'package:test_app/aqsam/addelement.dart/specifed.dart/questionsforall.dar
 import 'package:test_app/aqsam/addelement.dart/specifed.dart/questionsforall.dart/classquestion.dart';
 import 'package:test_app/home.dart';
 
-// ignore: must_be_immutable
 class Secondpage extends StatefulWidget {
-  List<Question> questionssecond;
+  final List<Question> questionssecond;
   final Map<String, String> answersFirstPage;
   final String nameqesem3;
   final IconData icon1;
   final String initiativeName;
   final String supporter;
+  final String subCategoryName;
+  final List<String> imageUrls; // ✅ جديد
 
-  Secondpage({
+  const Secondpage({
     super.key,
     required this.questionssecond,
     required this.answersFirstPage,
     required this.nameqesem3,
     required this.icon1,
-    required this.supporter,
     required this.initiativeName,
+    required this.supporter,
+    required this.subCategoryName,
+    required this.imageUrls, // ✅ جديد
   });
 
   @override
@@ -30,10 +33,25 @@ class Secondpage extends StatefulWidget {
 }
 
 class _SecondpageState extends State<Secondpage> {
-  final TextEditingController _loctionController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
   DateTime? selectedDate;
   String formattedDate = 'اختر تاريخ النشاط';
+
+  String? selectedGovernorate;
+  final List<String> jordanGovernorates = [
+    'عمان',
+    'الزرقاء',
+    'إربد',
+    'العقبة',
+    'البلقاء',
+    'المفرق',
+    'معان',
+    'الطفيلة',
+    'الكرك',
+    'جرش',
+    'عجلون',
+    'مأدبا',
+  ];
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -42,7 +60,6 @@ class _SecondpageState extends State<Secondpage> {
       firstDate: DateTime(2024),
       lastDate: DateTime(2030),
     );
-
     if (picked != null) {
       setState(() {
         selectedDate = picked;
@@ -93,16 +110,13 @@ class _SecondpageState extends State<Secondpage> {
                       return Column(
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(
-                              left: 60,
-                              right: 10,
-                              top: 20,
-                              bottom: 10,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
                             ),
-                            child: TextField(
-                              controller: _loctionController,
+                            child: DropdownButtonFormField<String>(
                               decoration: const InputDecoration(
-                                hintText: "ما هو موقع النشاط",
+                                labelText: 'اختر المحافظة',
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
                                     color: Colors.black,
@@ -116,6 +130,19 @@ class _SecondpageState extends State<Secondpage> {
                                   ),
                                 ),
                               ),
+                              value: selectedGovernorate,
+                              items:
+                                  jordanGovernorates.map((governorate) {
+                                    return DropdownMenuItem<String>(
+                                      value: governorate,
+                                      child: Text(governorate),
+                                    );
+                                  }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedGovernorate = value;
+                                });
+                              },
                             ),
                           ),
                           Padding(
@@ -133,7 +160,7 @@ class _SecondpageState extends State<Secondpage> {
                                 ElevatedButton(
                                   onPressed: () => _selectDate(context),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xff7433d3),
+                                    backgroundColor: const Color(0xff68316D),
                                   ),
                                   child: const Text(
                                     'اختر التاريخ',
@@ -157,7 +184,7 @@ class _SecondpageState extends State<Secondpage> {
                           minLines: 1,
                           maxLines: 4,
                           decoration: const InputDecoration(
-                            hintText: "ملاحظات",
+                            hintText: "ملاحظات (اختياري)",
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
                                 color: Colors.black,
@@ -178,10 +205,12 @@ class _SecondpageState extends State<Secondpage> {
                         padding: const EdgeInsets.all(16.0),
                         child: ElevatedButton(
                           onPressed: () async {
-                            final location = _loctionController.text.trim();
-                            final note = _noteController.text.trim();
-                            final selectedAnswers = <String, String>{};
+                            final note =
+                                _noteController.text.trim().isEmpty
+                                    ? 'لا يوجد ملاحظات'
+                                    : _noteController.text.trim();
 
+                            final selectedAnswers = <String, String>{};
                             for (var q in widget.questionssecond) {
                               if (q.selectedOption != null) {
                                 selectedAnswers[q.questionText] =
@@ -192,9 +221,8 @@ class _SecondpageState extends State<Secondpage> {
                             final uid = FirebaseAuth.instance.currentUser?.uid;
 
                             if (uid == null ||
-                                location.isEmpty ||
+                                selectedGovernorate == null ||
                                 selectedDate == null ||
-                                note.isEmpty ||
                                 selectedAnswers.length !=
                                     widget.questionssecond.length ||
                                 widget.answersFirstPage.length !=
@@ -209,20 +237,31 @@ class _SecondpageState extends State<Secondpage> {
                               return;
                             }
 
+                            final userDoc =
+                                await FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(uid)
+                                    .get();
+                            final profileImage =
+                                userDoc.data()?['profileImage'] ?? '';
+
                             await FirebaseFirestore.instance
                                 .collection('ads')
                                 .add({
                                   'uid': uid,
                                   'category': widget.nameqesem3,
-                                  'subCategory': widget.icon1.codePoint,
+                                  'subCategory': widget.subCategoryName,
                                   'supporter': widget.supporter,
                                   'initiativeName': widget.initiativeName,
-                                  'location': location,
+                                  'governorate': selectedGovernorate,
                                   'note': note,
                                   'date': selectedDate,
                                   'answersFirstPage': widget.answersFirstPage,
                                   'answersSecondPage': selectedAnswers,
                                   'timestamp': Timestamp.now(),
+                                  'profileImage': profileImage,
+                                  'imageUrls':
+                                      widget.imageUrls, // ✅ حفظ الصور هنا
                                 });
 
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -236,7 +275,7 @@ class _SecondpageState extends State<Secondpage> {
                               MaterialPageRoute(
                                 builder: (context) => const Home(),
                               ),
-                              (Route<dynamic> route) => false,
+                              (route) => false,
                             );
                           },
                           style: ElevatedButton.styleFrom(

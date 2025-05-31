@@ -25,8 +25,17 @@ class MyChatsPage extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('chat').snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(
+              child: Text(
+                "لا توجد محادثات بعد",
+                style: TextStyle(fontSize: 16),
+              ),
+            );
           }
 
           final chats =
@@ -57,9 +66,7 @@ class MyChatsPage extends StatelessWidget {
                         .get(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData || !snapshot.data!.exists) {
-                    return const ListTile(
-                      title: Text("جارٍ تحميل المستخدم..."),
-                    );
+                    return const SizedBox.shrink(); // إخفاء العنصر إن لم تجهز البيانات
                   }
 
                   final userData =
@@ -67,26 +74,77 @@ class MyChatsPage extends StatelessWidget {
                   final username = userData['username'] ?? 'مستخدم';
                   final accountType = userData['accountType'] ?? 'حساب';
 
-                  return ListTile(
-                    leading: const CircleAvatar(
-                      backgroundColor: Colors.deepPurple,
-                      child: Icon(Icons.person, color: Colors.white),
+                  return Dismissible(
+                    key: Key(chatDoc.id),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: const Icon(Icons.delete, color: Colors.white),
                     ),
-                    title: Text("محادثة مع: $username"),
-                    subtitle: Text("نوع الحساب: $accountType"),
-                    trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (_) => ChatPage(
-                                currentUserId: currentUserId,
-                                otherUserId: otherUserId,
+                    confirmDismiss: (direction) async {
+                      return await showDialog(
+                        context: context,
+                        builder:
+                            (context) => AlertDialog(
+                              title: const Text('تأكيد الحذف'),
+                              content: const Text(
+                                'هل أنت متأكد أنك تريد حذف هذه المحادثة؟',
                               ),
-                        ),
+                              actions: [
+                                TextButton(
+                                  onPressed:
+                                      () => Navigator.of(context).pop(false),
+                                  child: const Text('إلغاء'),
+                                ),
+                                TextButton(
+                                  onPressed:
+                                      () => Navigator.of(context).pop(true),
+                                  child: const Text('حذف'),
+                                ),
+                              ],
+                            ),
                       );
                     },
+                    onDismissed: (direction) async {
+                      // حذف الدردشة
+                      await FirebaseFirestore.instance
+                          .collection('chat')
+                          .doc(chatDoc.id)
+                          .delete();
+
+                      // إذا عندك مجموعة فرعية للرسائل وحابب تحذفها، شيل التعليق عن التالي:
+                      // final messages = await FirebaseFirestore.instance
+                      //     .collection('chat')
+                      //     .doc(chatDoc.id)
+                      //     .collection('messages')
+                      //     .get();
+                      // for (var msg in messages.docs) {
+                      //   await msg.reference.delete();
+                      // }
+                    },
+                    child: ListTile(
+                      leading: const CircleAvatar(
+                        backgroundColor: Colors.deepPurple,
+                        child: Icon(Icons.person, color: Colors.white),
+                      ),
+                      title: Text("محادثة مع: $username"),
+                      subtitle: Text("نوع الحساب: $accountType"),
+                      trailing: const Icon(Icons.arrow_forward_ios),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (_) => ChatPage(
+                                  currentUserId: currentUserId,
+                                  otherUserId: otherUserId,
+                                ),
+                          ),
+                        );
+                      },
+                    ),
                   );
                 },
               );

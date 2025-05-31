@@ -1,5 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 
 class EditAdPage extends StatefulWidget {
   final String adId;
@@ -13,27 +18,50 @@ class EditAdPage extends StatefulWidget {
 
 class _EditAdPageState extends State<EditAdPage> {
   late TextEditingController nameController;
-  late TextEditingController locationController;
   late TextEditingController noteController;
   late TextEditingController supporterController;
+  late TextEditingController typeController;
   late DateTime? selectedDate;
+  String? selectedGovernorate;
+
+  List<String> existingImages = [];
+  List<File> newImages = [];
+
+  final List<String> jordanGovernorates = [
+    'عمان',
+    'الزرقاء',
+    'إربد',
+    'العقبة',
+    'البلقاء',
+    'المفرق',
+    'معان',
+    'الطفيلة',
+    'الكرك',
+    'جرش',
+    'عجلون',
+    'مأدبا',
+  ];
 
   final Map<String, TextEditingController> answersControllers = {};
 
   @override
   void initState() {
     super.initState();
+
     nameController = TextEditingController(
       text: widget.adData['initiativeName'],
     );
-    locationController = TextEditingController(text: widget.adData['location']);
     noteController = TextEditingController(text: widget.adData['note']);
     supporterController = TextEditingController(
       text: widget.adData['supporter'],
     );
+    typeController = TextEditingController(
+      text: widget.adData['initiativeType'] ?? '',
+    );
+    selectedGovernorate = widget.adData['governorate'];
     selectedDate = (widget.adData['date'] as Timestamp?)?.toDate();
+    existingImages = List<String>.from(widget.adData['imageUrls'] ?? []);
 
-    // Load all answer fields dynamically
     final Map<String, dynamic> answers1 =
         widget.adData['answersFirstPage'] ?? {};
     final Map<String, dynamic> answers2 =
@@ -59,12 +87,47 @@ class _EditAdPageState extends State<EditAdPage> {
     }
   }
 
+  Future<void> pickNewImages() async {
+    final picked = await ImagePicker().pickMultiImage();
+    // ignore: unnecessary_null_comparison
+    if (picked != null) {
+      setState(() {
+        newImages.addAll(picked.map((e) => File(e.path)));
+      });
+    }
+  }
+
+  Future<List<String>> uploadNewImages() async {
+    const cloudName = 'de40nspy3';
+    const uploadPreset = 'flutter_unsigned';
+    List<String> urls = [];
+
+    for (var image in newImages) {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload'),
+      );
+      request.fields['upload_preset'] = uploadPreset;
+      request.fields['folder'] = 'ads';
+      request.files.add(await http.MultipartFile.fromPath('file', image.path));
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        final resStr = await response.stream.bytesToString();
+        final data = json.decode(resStr);
+        urls.add(data['secure_url']);
+      }
+    }
+    return urls;
+  }
+
   Future<void> updateAd() async {
     if (nameController.text.trim().isEmpty ||
-        locationController.text.trim().isEmpty ||
+        selectedGovernorate == null ||
         noteController.text.trim().isEmpty ||
         supporterController.text.trim().isEmpty ||
-        selectedDate == null) {
+        selectedDate == null ||
+        (widget.adData['category'] == 'فرص تطوعية عامة' &&
+            typeController.text.trim().isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("يرجى تعبئة جميع الحقول الأساسية")),
       );
@@ -85,18 +148,24 @@ class _EditAdPageState extends State<EditAdPage> {
         entry.key: entry.value.text.trim(),
     };
 
+    final newUploadedUrls = await uploadNewImages();
+    final allImages = [...existingImages, ...newUploadedUrls];
+
     try {
       await FirebaseFirestore.instance
           .collection('ads')
           .doc(widget.adId)
           .update({
             'initiativeName': nameController.text.trim(),
-            'location': locationController.text.trim(),
+            'governorate': selectedGovernorate,
             'note': noteController.text.trim(),
             'supporter': supporterController.text.trim(),
             'date': Timestamp.fromDate(selectedDate!),
             'answersFirstPage': updatedAnswers,
             'answersSecondPage': {},
+            'imageUrls': allImages,
+            if (widget.adData['category'] == 'فرص تطوعية عامة')
+              'initiativeType': typeController.text.trim(),
           });
 
       if (context.mounted) {
@@ -115,9 +184,7 @@ class _EditAdPageState extends State<EditAdPage> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-      },
+      onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(
           iconTheme: const IconThemeData(color: Colors.white),
@@ -137,24 +204,39 @@ class _EditAdPageState extends State<EditAdPage> {
               ),
               const SizedBox(height: 12),
               TextField(
-                controller: locationController,
-                decoration: const InputDecoration(labelText: "الموقع"),
-              ),
-              const SizedBox(height: 12),
-              TextField(
                 controller: supporterController,
                 decoration: const InputDecoration(labelText: "الجهة الداعمة"),
               ),
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(labelText: "اختر المحافظة"),
+                value: selectedGovernorate,
+                items:
+                    jordanGovernorates
+                        .map((g) => DropdownMenuItem(value: g, child: Text(g)))
+                        .toList(),
+                onChanged:
+                    (value) => setState(() => selectedGovernorate = value),
+              ),
+              const SizedBox(height: 12),
+              if (widget.adData['category'] == 'فرص تطوعية عامة')
+                TextField(
+                  controller: typeController,
+                  decoration: const InputDecoration(labelText: "نوع المبادرة"),
+                ),
               const SizedBox(height: 12),
               Row(
                 children: [
                   Text(
                     selectedDate == null
                         ? "التاريخ: غير محدد"
-                        : "📅 التاريخ: ${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}",
+                        : "📅 ${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}",
                   ),
                   const Spacer(),
                   ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: const Color(0xFF68316D),
+                    ),
                     onPressed: () => _selectDate(context),
                     child: const Text("اختيار التاريخ"),
                   ),
@@ -184,6 +266,72 @@ class _EditAdPageState extends State<EditAdPage> {
                     ),
                   ),
                 ),
+              ),
+              const SizedBox(height: 20),
+              const Divider(),
+              const Text(
+                "📷 الصور الحالية",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Wrap(
+                spacing: 8,
+                children:
+                    existingImages.map((url) {
+                      return Stack(
+                        alignment: Alignment.topRight,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              url,
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap:
+                                () =>
+                                    setState(() => existingImages.remove(url)),
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.black54,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: const Color(0xFF68316D),
+                ),
+                onPressed: pickNewImages,
+                child: const Text("📷 إضافة صور جديدة (اختياري)"),
+              ),
+              Wrap(
+                spacing: 8,
+                children:
+                    newImages
+                        .map(
+                          (file) => Image.file(
+                            file,
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                        .toList(),
               ),
               const SizedBox(height: 24),
               ElevatedButton(

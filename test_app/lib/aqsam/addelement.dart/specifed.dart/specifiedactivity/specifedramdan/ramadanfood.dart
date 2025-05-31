@@ -76,7 +76,7 @@ class Ramadanfood extends StatelessWidget {
                 children: [
                   Text(
                     "الفعاليات والمساعدات الإجتماعية",
-                    style: TextStyle(color: Color(0xffce9dd2), fontSize: 25),
+                    style: TextStyle(color: Color(0xffce9dd2), fontSize: 20),
                   ),
                   Padding(
                     padding: EdgeInsets.all(10),
@@ -132,6 +132,7 @@ class Ramadanfood extends StatelessWidget {
                 questionsf2: iftarEventQuestions2,
                 nameqesem2: "الفعاليات والمساعدات الإجتماعية",
                 icon: Icons.volunteer_activism,
+                nameqesem4: " تنظيم إفطار جماعي في رمضان",
               ),
             ],
           ),

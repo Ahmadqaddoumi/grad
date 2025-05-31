@@ -161,6 +161,7 @@ class Recycling extends StatelessWidget {
                 questionsf2: question2,
                 nameqesem2: "بيئي",
                 icon: Icons.spa,
+                nameqesem4: "إعادة التدوير وإدارة النفايات",
               ),
             ],
           ),

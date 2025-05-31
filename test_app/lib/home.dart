@@ -98,9 +98,7 @@ class _HomeState extends State<Home> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        body: SafeArea(
-          child: IndexedStack(index: _selectedIndex, children: currentPages),
-        ),
+        body: IndexedStack(index: _selectedIndex, children: currentPages),
         bottomNavigationBar: CurvedNavigationBar(
           backgroundColor: Colors.white,
           color: const Color(0xFF68316D),

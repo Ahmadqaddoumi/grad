@@ -93,51 +93,58 @@ class _HomePageState extends State<HomePage> {
                 else
                   const SizedBox(width: 30),
                 const SizedBox(width: 8),
-                StreamBuilder<QuerySnapshot>(
-                  stream:
-                      FirebaseFirestore.instance
-                          .collection('notifications')
-                          .where(
-                            'toUserId',
-                            isEqualTo: FirebaseAuth.instance.currentUser!.uid,
-                          )
-                          .where('read', isEqualTo: false)
-                          .snapshots(),
-                  builder: (context, snapshot) {
-                    final hasUnread =
-                        snapshot.hasData && snapshot.data!.docs.isNotEmpty;
+                FirebaseAuth.instance.currentUser != null
+                    ? StreamBuilder<QuerySnapshot>(
+                      stream:
+                          FirebaseFirestore.instance
+                              .collection('notifications')
+                              .where(
+                                'toUserId',
+                                isEqualTo:
+                                    FirebaseAuth.instance.currentUser!.uid,
+                              )
+                              .where('read', isEqualTo: false)
+                              .snapshots(),
+                      builder: (context, snapshot) {
+                        final hasUnread =
+                            snapshot.hasData && snapshot.data!.docs.isNotEmpty;
 
-                    return Stack(
-                      alignment: Alignment.topLeft,
-                      children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.notifications,
-                            size: 30,
-                            color: Colors.black87,
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const Notifications(),
+                        return Stack(
+                          alignment: Alignment.topLeft,
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.notifications,
+                                size: 30,
+                                color: Colors.black87,
                               ),
-                            );
-                          },
-                        ),
-                        if (hasUnread)
-                          const Positioned(
-                            top: 4,
-                            left: 4,
-                            child: CircleAvatar(
-                              radius: 6,
-                              backgroundColor: Colors.red,
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const Notifications(),
+                                  ),
+                                );
+                              },
                             ),
-                          ),
-                      ],
-                    );
-                  },
-                ),
+                            if (hasUnread)
+                              const Positioned(
+                                top: 4,
+                                left: 4,
+                                child: CircleAvatar(
+                                  radius: 6,
+                                  backgroundColor: Colors.red,
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    )
+                    : const Icon(
+                      Icons.notifications_none,
+                      size: 30,
+                      color: Colors.grey,
+                    ),
                 const SizedBox(width: 10),
               ],
             ),
@@ -188,23 +195,25 @@ class _HomePageState extends State<HomePage> {
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: GridView(
+              child: GridView.builder(
+                itemCount: filteredSections.length,
+                physics: const NeverScrollableScrollPhysics(), // <<< هذا مهم
+                shrinkWrap: true,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   mainAxisExtent: 140,
                   crossAxisCount: 2,
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
                 ),
-                shrinkWrap: true,
                 padding: const EdgeInsets.all(16),
-                children:
-                    filteredSections.map((section) {
-                      return Agsam(
-                        title: section['title'],
-                        icon: section['icon'],
-                        onchange: () => openSection(section['title']),
-                      );
-                    }).toList(),
+                itemBuilder: (context, index) {
+                  final section = filteredSections[index];
+                  return Agsam(
+                    title: section['title'],
+                    icon: section['icon'],
+                    onchange: () => openSection(section['title']),
+                  );
+                },
               ),
             ),
           ],

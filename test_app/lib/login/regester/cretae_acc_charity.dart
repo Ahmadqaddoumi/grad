@@ -33,7 +33,15 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
     ).hasMatch(email);
   }
 
-  bool isPasswordStrong(String password) => password.length >= 8;
+  bool isPasswordStrong(String password) {
+    final hasUpper = RegExp(r'[A-Z]').hasMatch(password);
+    final hasLower = RegExp(r'[a-z]').hasMatch(password);
+    final hasDigit = RegExp(r'\d').hasMatch(password);
+    final hasSpecial = RegExp(r'[!@#\$&*~]').hasMatch(password);
+    final hasMinLength = password.length >= 8;
+
+    return hasUpper && hasLower && hasDigit && hasSpecial && hasMinLength;
+  }
 
   Future<bool> checkSerialNumberExists(String serialNumber) async {
     final doc =
@@ -51,43 +59,60 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
     final confirmPassword = confirmPasswordController.text;
     final serialNumber = serialController.text.trim();
 
-    if ([
-      username,
-      email,
-      password,
-      confirmPassword,
-      serialNumber,
-    ].any((v) => v.isEmpty)) {
+    // ✅ Check for empty fields
+    if (username.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty ||
+        serialNumber.isEmpty) {
       return _showError("يرجى تعبئة جميع الحقول");
     }
 
-    if (!isEmailValid(email)) {
-      return _showError("يرجى إدخال بريد إلكتروني صحيح");
+    // ✅ Email format validation
+    if (!RegExp(
+      r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$",
+    ).hasMatch(email)) {
+      return _showError("البريد الإلكتروني غير صالح");
     }
 
+    // ✅ Password strength check
     if (!isPasswordStrong(password)) {
-      return _showError("كلمة المرور يجب أن تكون 8 أحرف على الأقل");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'كلمة المرور يجب أن تحتوي على 8 أحرف على الأقل، '
+            'وحرف كبير وصغير، ورقم، ورمز خاص (!@#\$&*)',
+          ),
+        ),
+      );
+      return;
     }
 
+    // ✅ Password match check
     if (password != confirmPassword) {
       return _showError("كلمتا المرور غير متطابقتين");
+    }
+
+    // ✅ Serial number check
+    final serialExists = await checkSerialNumberExists(serialNumber);
+    if (!serialExists) {
+      return _showError("الرقم التسلسلي غير صحيح");
     }
 
     if (!booleanValue) {
       return _showError("يجب الموافقة على الشروط والأحكام");
     }
 
-    final serialExists = await checkSerialNumberExists(serialNumber);
-    if (!serialExists) return _showError("الرقم التسلسلي غير صحيح");
-
+    // ✅ Proceed with Firebase registration
     try {
       final userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
 
-      final uid = userCredential.user!.uid;
+      final user = userCredential.user!;
+      await user.sendEmailVerification();
 
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
-        'uid': uid,
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'uid': user.uid,
         'username': username,
         'email': email,
         'accountType': 'Charity',
@@ -95,23 +120,30 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
         'isActive': true,
       });
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('تم إنشاء الحساب بنجاح! ✅')));
+      await FirebaseAuth.instance.signOut();
 
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const LogInPage()));
+      showDialog(
+        context: context,
+        builder:
+            (_) => AlertDialog(
+              title: const Text("تم إنشاء الحساب"),
+              content: const Text(
+                "تم إرسال رابط تحقق إلى بريدك الإلكتروني.\nيرجى التحقق قبل تسجيل الدخول.",
+              ),
+              actions: [
+                TextButton(
+                  child: const Text("موافق"),
+                  onPressed:
+                      () => Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LogInPage()),
+                      ),
+                ),
+              ],
+            ),
+      );
     } catch (e) {
-      String msg = "حدث خطأ غير متوقع";
-      if (e is FirebaseAuthException) {
-        if (e.code == 'email-already-in-use') {
-          msg = 'البريد الإلكتروني مستخدم بالفعل';
-        } else if (e.code == 'weak-password') {
-          msg = 'كلمة المرور ضعيفة';
-        }
-      }
-      _showError(msg);
+      _showError('حدث خطأ: ${e.toString()}');
     }
   }
 
@@ -326,3 +358,4 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
     );
   }
 }
+/////////////create_acc_charity.dart

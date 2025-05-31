@@ -34,7 +34,13 @@ class _CreateNewAccountState extends State<CreateNewAccount> {
   }
 
   bool isPasswordStrong(String password) {
-    return password.length >= 8;
+    final hasUpper = RegExp(r'[A-Z]').hasMatch(password);
+    final hasLower = RegExp(r'[a-z]').hasMatch(password);
+    final hasDigit = RegExp(r'\d').hasMatch(password);
+    final hasSpecial = RegExp(r'[!@#\$&*~]').hasMatch(password);
+    final hasMinLength = password.length >= 8;
+
+    return hasUpper && hasLower && hasDigit && hasSpecial && hasMinLength;
   }
 
   Future<void> registerVolunteer() async {
@@ -43,6 +49,7 @@ class _CreateNewAccountState extends State<CreateNewAccount> {
     final password = passwordController.text.trim();
     final confirmPassword = confirmPasswordController.text.trim();
 
+    // ✅ Field is empty check
     if (username.isEmpty ||
         email.isEmpty ||
         password.isEmpty ||
@@ -53,22 +60,28 @@ class _CreateNewAccountState extends State<CreateNewAccount> {
       return;
     }
 
+    // ✅ Email validation
     if (!isEmailValid(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إدخال بريد إلكتروني صحيح')),
+        const SnackBar(content: Text('البريد الإلكتروني غير صالح')),
       );
       return;
     }
 
+    // ✅ Password strength
     if (!isPasswordStrong(password)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
+          content: Text(
+            'كلمة المرور يجب أن تحتوي على 8 أحرف على الأقل، '
+            'وحرف كبير وصغير، ورقم، ورمز خاص (!@#\$&*)',
+          ),
         ),
       );
       return;
     }
 
+    // ✅ Password match
     if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('كلمتا المرور غير متطابقتين')),
@@ -76,6 +89,7 @@ class _CreateNewAccountState extends State<CreateNewAccount> {
       return;
     }
 
+    // ✅ Checkbox: Must agree to terms
     if (!booleanValue) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('يجب الموافقة على الشروط والأحكام')),
@@ -83,26 +97,43 @@ class _CreateNewAccountState extends State<CreateNewAccount> {
       return;
     }
 
+    // ✅ Proceed with Firebase
     try {
-      UserCredential userCredential = await FirebaseAuth.instance
+      final userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
 
-      final uid = userCredential.user!.uid;
+      final user = userCredential.user!;
+      await user.sendEmailVerification();
 
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
-        'uid': uid,
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'uid': user.uid,
         'username': username,
         'email': email,
         'accountType': 'Volunteer',
         'isActive': true,
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم إنشاء الحساب بنجاح! 👏')),
-      );
+      await FirebaseAuth.instance.signOut();
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const LogInPage()),
+      showDialog(
+        context: context,
+        builder:
+            (_) => AlertDialog(
+              title: const Text("تم إنشاء الحساب"),
+              content: const Text(
+                "تم إرسال رابط تحقق إلى بريدك الإلكتروني.\nيرجى التحقق قبل تسجيل الدخول.",
+              ),
+              actions: [
+                TextButton(
+                  child: const Text("موافق"),
+                  onPressed:
+                      () => Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LogInPage()),
+                      ),
+                ),
+              ],
+            ),
       );
     } catch (e) {
       ScaffoldMessenger.of(
@@ -315,3 +346,4 @@ class _CreateNewAccountState extends State<CreateNewAccount> {
     );
   }
 }
+//////////create_acc.dart

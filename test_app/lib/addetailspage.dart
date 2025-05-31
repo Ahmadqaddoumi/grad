@@ -6,9 +6,16 @@ class AdDetailsPage extends StatelessWidget {
 
   const AdDetailsPage({super.key, required this.ad});
 
+  Future<String> getUsernameFromUid(String uid) async {
+    final doc =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    return doc.exists ? (doc.data()?['username'] ?? 'غير محدد') : 'غير محدد';
+  }
+
   @override
   Widget build(BuildContext context) {
     final data = ad.data() as Map<String, dynamic>;
+    final imageUrls = List<String>.from(data['imageUrls'] ?? []);
 
     final allAnswers = <String, dynamic>{};
     if (data['answersFirstPage'] != null) {
@@ -34,36 +41,78 @@ class AdDetailsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            buildInfoCard(
-              "📍 الموقع",
-              data['location']?.toString() ?? 'غير محدد',
-            ),
+            if (imageUrls.isNotEmpty)
+              SizedBox(
+                height: 180,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: imageUrls.length,
+                  itemBuilder: (context, index) {
+                    final url = imageUrls[index];
+                    return GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder:
+                              (_) => Dialog(
+                                backgroundColor: Colors.black,
+                                child: InteractiveViewer(
+                                  child: Image.network(url),
+                                ),
+                              ),
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 10),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            url,
+                            width: 140,
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (context, error, stackTrace) =>
+                                    const Icon(Icons.broken_image),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            const SizedBox(height: 20),
 
+            FutureBuilder<String>(
+              future: getUsernameFromUid(data['uid']),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                final supporter = snapshot.data ?? 'غير محدد';
+                return buildInfoCard("🏛 الجهة الداعمة", supporter);
+              },
+            ),
             buildInfoCard(
-              "📝 وصف الإعلان",
+              "📍 المحافظة",
+              data['governorate']?.toString() ?? 'غير محددة',
+            ),
+            buildInfoCard(
+              "📝 الملاحظات",
               data['note']?.toString() ?? 'لا يوجد وصف',
             ),
 
-            if ((data['supporter']?.toString().isNotEmpty ?? false))
+            if (data['category'] == 'فرص تطوعية عامة')
               buildInfoCard(
-                "🏛️ الجهة الداعمة",
-                data['supporter']?.toString() ?? 'غير محدد',
-              ),
-
-            buildInfoCard(
-              "🎯 نوع المبادرة",
-              data['initiativeType']?.toString() ?? 'غير محدد',
-            ),
-
-            if ((data['initiativeGoal']?.toString().isNotEmpty ?? false))
-              buildInfoCard(
-                "🎯 الهدف من المبادرة",
-                data['initiativeGoal']?.toString() ?? 'غير محدد',
+                "🎯 نوع المبادرة",
+                data['initiativeType']?.toString() ?? 'غير محدد',
               ),
 
             const SizedBox(height: 20),
             const Text(
-              "🧾 تفاصيل الحملة",
+              "📋 تفاصيل النشاط:",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
@@ -71,6 +120,7 @@ class AdDetailsPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
+
             ...allAnswers.entries.map((entry) {
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 6),

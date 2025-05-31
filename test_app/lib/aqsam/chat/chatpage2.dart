@@ -107,14 +107,13 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 ),
                 const SizedBox(width: 4),
-
-                const SizedBox(width: 4),
                 IconButton(
                   icon: const Icon(Icons.send, color: Colors.purple),
                   onPressed: () async {
                     final text = _controller.text.trim();
                     if (text.isEmpty) return;
 
+                    // أرسل الرسالة
                     await FirebaseFirestore.instance
                         .collection('chat')
                         .doc(chatId)
@@ -124,6 +123,29 @@ class _ChatPageState extends State<ChatPage> {
                           'receiverId': widget.otherUserId,
                           'message': text,
                           'timestamp': Timestamp.now(),
+                        });
+
+                    // جلب اسم المرسل من Firestore
+                    final senderDoc =
+                        await FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(widget.currentUserId)
+                            .get();
+
+                    final senderName =
+                        senderDoc.data()?['username'] ?? 'مستخدم مجهول';
+
+                    // أرسل إشعار بالإسم
+                    await FirebaseFirestore.instance
+                        .collection('notifications')
+                        .add({
+                          'toUserId': widget.otherUserId,
+                          'fromUserId': widget.currentUserId,
+                          'title': '📩 رسالة جديدة من $senderName',
+                          'message': text,
+                          'type': 'message',
+                          'timestamp': Timestamp.now(),
+                          'read': false,
                         });
 
                     _controller.clear();

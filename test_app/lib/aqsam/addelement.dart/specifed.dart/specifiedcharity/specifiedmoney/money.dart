@@ -141,6 +141,7 @@ class Money extends StatelessWidget {
                 questionsf2: donationCampaignQuestions2,
                 nameqesem2: "احتياجات الجمعيات",
                 icon: Icons.business_sharp,
+                nameqesem4: 'الدعم المالي والتبرعات النقدية',
               ),
             ],
           ),

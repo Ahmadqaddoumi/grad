@@ -145,6 +145,7 @@ class Cleanpublic extends StatelessWidget {
                 questionsf2: cleaningActivityQuestions2,
                 nameqesem2: "بيئي",
                 icon: Icons.spa,
+                nameqesem4: "حملات تنظيف الأماكن العامة",
               ),
             ],
           ),
