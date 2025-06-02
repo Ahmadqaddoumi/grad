@@ -205,7 +205,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           ],
                         ),
                         const SizedBox(height: 6),
-                        Text('🏛 الجهة الداعمة: $supporterUsername'),
+                        Text('🏛 الجهة المنظمة: $supporterUsername'),
                         Text('🏙 المحافظة: $governorate'),
                         if (ad['category'] == 'فرص تطوعية عامة')
                           Text(

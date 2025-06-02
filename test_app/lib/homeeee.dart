@@ -35,7 +35,6 @@ class _HomePageState extends State<HomePage> {
       "icon": Icons.volunteer_activism,
     },
     {"title": "فرص تطوعية عامة", "icon": Icons.handshake},
-    {"title": "فرص تطوعية عامة", "icon": Icons.handshake},
   ];
 
   List<Map<String, dynamic>> get filteredSections {

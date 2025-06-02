@@ -92,7 +92,7 @@ class AdDetailsPage extends StatelessWidget {
                   );
                 }
                 final supporter = snapshot.data ?? 'غير محدد';
-                return buildInfoCard("🏛 الجهة الداعمة", supporter);
+                return buildInfoCard("🏛 الجهة المنظمة", supporter);
               },
             ),
             buildInfoCard(
