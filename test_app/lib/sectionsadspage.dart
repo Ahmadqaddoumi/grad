@@ -343,7 +343,7 @@ class _SectionAdsPageState extends State<SectionAdsPage> {
                               ),
                               SizedBox(width: 8),
                               Text(
-                                "جاري تحميل الجهة الداعمة...",
+                                "جاري تحميل الجهة المنظمة...",
                                 style: TextStyle(color: Colors.white60),
                               ),
                             ],
@@ -351,7 +351,7 @@ class _SectionAdsPageState extends State<SectionAdsPage> {
                         }
                         final supporter = snapshot.data ?? 'غير محددة';
                         return Text(
-                          "🏛 الجهة الداعمة: $supporter",
+                          "🏛 الجهة المنظمة: $supporter",
                           style: const TextStyle(
                             fontSize: 14,
                             color: Colors.white60,
