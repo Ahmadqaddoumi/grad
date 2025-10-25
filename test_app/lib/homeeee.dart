@@ -31,9 +31,10 @@ class _HomePageState extends State<HomePage> {
     {"title": "احتياجات الجمعيات", "icon": Icons.business_sharp},
     {"title": "بيئي", "icon": Icons.spa},
     {
-      "title": "الفعاليات والمساعدات الإجتماعية",
+      "title": "الفعاليات والمساعدات الإجتماعية", 
       "icon": Icons.volunteer_activism,
     },
+
     {"title": "فرص تطوعية عامة", "icon": Icons.handshake},
   ];
 
@@ -197,7 +198,7 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.all(8.0),
               child: GridView.builder(
                 itemCount: filteredSections.length,
-                physics: const NeverScrollableScrollPhysics(), // <<< هذا مهم
+                physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   mainAxisExtent: 140,

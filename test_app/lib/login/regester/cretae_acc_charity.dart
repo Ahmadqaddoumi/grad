@@ -26,6 +26,7 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
   final serialController = TextEditingController();
 
   bool booleanValue = false;
+  bool isLoading = false;
 
   bool isEmailValid(String email) {
     return RegExp(
@@ -105,6 +106,8 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
 
     // ✅ Proceed with Firebase registration
     try {
+      isLoading = true;
+      setState(() {});
       final userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
 
@@ -121,7 +124,8 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
       });
 
       await FirebaseAuth.instance.signOut();
-
+      isLoading = false;
+      setState(() {});
       showDialog(
         context: context,
         builder:
@@ -248,14 +252,21 @@ class _CreateAccCharityState extends State<CreateAccCharity> {
                           ),
                         ),
                         onPressed: registerCharity,
-                        child: const Text(
-                          "أنشئ حساب",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
+                        child:
+                            isLoading == true
+                                ? const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                  ),
+                                )
+                                : const Text(
+                                  "أنشئ حساب",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
                       ),
                       const SizedBox(height: 20),
                       Row(

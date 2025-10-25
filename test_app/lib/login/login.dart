@@ -20,6 +20,7 @@ class LogInPage extends StatefulWidget {
 class _LogInPageState extends State<LogInPage> {
   bool booleanValue = false;
   bool isObsecure = true;
+  bool isLoading = false;
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
@@ -68,9 +69,12 @@ class _LogInPageState extends State<LogInPage> {
     }
 
     try {
+      isLoading = true;
+      setState(() {});
       final userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
-
+      isLoading = false;
+      setState(() {});
       final user = userCredential.user;
       final uid = user!.uid;
 
@@ -365,14 +369,22 @@ class _LogInPageState extends State<LogInPage> {
                                           Color(0xff68316d),
                                         ),
                                       ),
-                                      child: const Text(
-                                        "تسجيل الدخول",
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                                      child:
+                                          isLoading == true
+                                              ? const Center(
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      color: Colors.white,
+                                                    ),
+                                              )
+                                              : const Text(
+                                                "تسجيل الدخول",
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
                                     ),
                                   ),
                                 ],
